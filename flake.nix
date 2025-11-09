@@ -26,6 +26,7 @@
               ps.pytest
               ps.fastapi
               ps.uvicorn
+              ps.pyyaml
               ps.pip
             ]))
           ];

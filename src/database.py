@@ -35,23 +35,21 @@ def get_db():
     return Session()
 
 
-def _create_platform(platform_type: str, config: dict) -> Any:
+def _create_platform(platform_type: str) -> Any:
     """
-    Create platform instance from type and config.
+    Create platform instance from type.
+    Platforms load their own configuration from environment variables or config files.
     
     Args:
         platform_type: Type of platform (e.g., "Minecraft")
-        config: Configuration dictionary for the platform
         
     Returns:
         Platform instance
     """
     if platform_type == "Minecraft":
-        from .plugins.minecraft import Minecraft
-        return Minecraft(
-            api_key=config.get('api_key'),
-            server_url=config.get('server_url')
-        )
+        from .platforms.minecraft import Minecraft
+        # Minecraft class loads config from env vars or config files
+        return Minecraft()
     else:
         raise ValueError(f"Unknown platform type: {platform_type}")
 
@@ -152,17 +150,15 @@ def load_all(db: Any) -> Dict:
     # Load all shops and recreate platform instances
     shop_models = db.query(ShopModel).all()
     for shop_model in shop_models:
-        # Recreate platform from stored config
+        # Recreate platform from stored type
         platform = _create_platform(
-            shop_model.platform_type or "Minecraft",
-            shop_model.platform_config or {}
+            shop_model.platform_type or "Minecraft"
         )
         
         # Create shop instance
         shop = Shop(platform, db)
         shop.shop_id = shop_model.shop_id
         shop.platform_type = shop_model.platform_type
-        shop.platform_config = shop_model.platform_config or {}
         
         shops[shop_model.shop_id] = shop
     

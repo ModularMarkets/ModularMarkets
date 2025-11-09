@@ -42,7 +42,8 @@ class Shop(ABC):
             buy_cap: Maximum quantity that can be bought in a single transaction
             sell_cap: Maximum quantity that can be sold in a single transaction
         """
-        if name not in self.my_platform.get_item_list():
+        item_list = self.my_platform.get_item_list()
+        if item_list and name not in item_list:
             raise ValueError(f"Item {name} not available on platform")
         
         if name in self.merchants:
@@ -131,12 +132,10 @@ class Shop(ABC):
         ).first()
         if shop_model:
             shop_model.platform_type = getattr(self, 'platform_type', None)
-            shop_model.platform_config = getattr(self, 'platform_config', {})
         else:
             shop_model = ShopModel(
                 shop_id=shop_id,
-                platform_type=getattr(self, 'platform_type', None),
-                platform_config=getattr(self, 'platform_config', {})
+                platform_type=getattr(self, 'platform_type', None)
             )
             self.my_db.add(shop_model)
         self.my_db.commit()

@@ -289,7 +289,10 @@ class Minecraft(Platform):
         Returns:
             List of item names
         """
-        pass
+        # Return item names from loaded items, or empty list if not loaded yet
+        if hasattr(self, '_possible_items') and self._possible_items:
+            return [item.item_name for item in self._possible_items]
+        return []
     
     def deliver_item(self, item_name: str, amount: int, uuid: str) -> int:
         """

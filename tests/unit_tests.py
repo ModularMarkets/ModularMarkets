@@ -9,7 +9,7 @@ from src.users.user import User
 from src.merchant import Merchant
 from src.shop import Shop
 from src.algorithm import Algorithm, Result
-from src.plugins.platform import Platform
+from src.platforms.platform import Platform
 from src.database import get_db, load_all
 
 

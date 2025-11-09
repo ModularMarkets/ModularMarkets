@@ -2,8 +2,7 @@
 Database models for persistence.
 """
 from sqlalchemy import Column, String, Float, Integer, DateTime, JSON, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
 Base = declarative_base()
@@ -24,7 +23,6 @@ class ShopModel(Base):
     __tablename__ = 'shops'
     shop_id = Column(String, primary_key=True)
     platform_type = Column(String)
-    platform_config = Column(JSON)
 
 
 class MerchantModel(Base):

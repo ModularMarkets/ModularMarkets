@@ -11,7 +11,7 @@ from src.database import get_db, load_all
 from src.users.user import User
 from src.shop import Shop
 from src.merchant import Merchant
-from src.plugins.minecraft import Minecraft
+from src.platforms.minecraft import Minecraft
 from src.algorithm import Algorithm, Result
 
 
@@ -145,14 +145,13 @@ class TestDatabaseIntegration:
     
     def test_save_and_load_shop(self, test_db):
         """Test saving and loading a shop with platform."""
-        # Create platform
-        platform = Minecraft(api_key="test_key", server_url="http://test.server")
+        # Create platform (new Minecraft class loads config from env/config files)
+        platform = Minecraft()
         
         # Create shop
         shop = Shop(platform, test_db)
         shop.shop_id = "test_shop_1"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {"api_key": "test_key", "server_url": "http://test.server"}
         shop.save_shop_to_sql()
         
         # Load from database
@@ -164,8 +163,7 @@ class TestDatabaseIntegration:
         assert loaded_shop.shop_id == "test_shop_1"
         assert loaded_shop.platform_type == "Minecraft"
         assert isinstance(loaded_shop.my_platform, Minecraft)
-        assert loaded_shop.my_platform.api_key == "test_key"
-        assert loaded_shop.my_platform.server_url == "http://test.server"
+        # New Minecraft class loads config from env/config files, not stored attributes
     
     def test_save_and_load_merchant(self, test_db):
         """Test saving and loading a merchant."""
@@ -174,7 +172,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "test_shop_1"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         # Create algorithm
@@ -227,11 +224,10 @@ class TestDatabaseIntegration:
         user2.save()
         
         # Create shop with platform
-        platform = Minecraft(api_key="prod_key", server_url="http://prod.server")
+        platform = Minecraft()
         shop = Shop(platform, test_db)
         shop.shop_id = "main_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {"api_key": "prod_key", "server_url": "http://prod.server"}
         shop.save_shop_to_sql()
         
         # Create merchants
@@ -319,7 +315,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "price_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
@@ -349,7 +344,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "cap_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
@@ -387,7 +381,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "txn_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
@@ -426,7 +419,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "algo_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         # Create algorithm with specific config
@@ -459,7 +451,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "swap_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         # Create initial algorithm
@@ -497,7 +488,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "config_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
@@ -531,7 +521,6 @@ class TestDatabaseIntegration:
         shop = Shop(platform, test_db)
         shop.shop_id = "error_test_shop"
         shop.platform_type = "Minecraft"
-        shop.platform_config = {}
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
