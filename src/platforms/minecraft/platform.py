@@ -1346,7 +1346,7 @@ class MinecraftBotNet(StorageNetwork):
 class Minecraft(Platform):
     """Minecraft platform implementation for The Pit and other servers."""
     
-    platform_name: str = "minecrap"
+    platform_name: str = "minecraft"
     
     def __init__(self, *args, **kwargs):
         """
