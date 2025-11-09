@@ -1,6 +1,7 @@
 # Core dependencies
 sqlalchemy>=2.0.0
 python-dotenv>=1.0.0
+pyyaml>=6.0.0
 
 # Optional dependencies (uncomment as needed)
 

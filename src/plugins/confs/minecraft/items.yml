@@ -1,0 +1,92 @@
+# Minecraft Items Configuration
+# List of valuable and commonly traded items in Minecraft
+# Each item has: name, weight (for logistics), and optional info
+#
+# IMPORTANT: The 'info' field should ONLY contain in-game NBT data relevant
+# for identifying items in trading (e.g., custom names, lore, enchantments).
+# It must follow the Minecraft NBT specification.
+#
+# For standard items without custom NBT, use an empty info: {} or omit it.
+# Only include NBT data when items have custom names, descriptions, or other
+# identifying characteristics that matter for trading.
+#
+# Common NBT fields:
+#   display:
+#     Name: '{"text":"Custom Item Name"}'  # JSON text component
+#     Lore: ['{"text":"Line 1"}', '{"text":"Line 2"}']  # Array of JSON text
+#   Enchantments: [...]  # If relevant for trading
+#
+# See: https://minecraft.wiki/w/Item_format
+
+items:
+  # Ores and Minerals
+  # Standard items without custom NBT - info is empty
+  - name: diamond
+    weight: 1
+    info: {}
+  
+  - name: emerald
+    weight: 1
+    info: {}
+  
+  - name: gold_ingot
+    weight: 1
+    info: {}
+  
+  - name: iron_ingot
+    weight: 1
+    info: {}
+  
+  - name: netherite_ingot
+    weight: 1
+    info: {}
+  
+  - name: ancient_debris
+    weight: 1
+    info: {}
+  
+  # Food and Consumables
+  - name: golden_apple
+    weight: 1
+    info: {}
+  
+  - name: enchanted_golden_apple
+    weight: 1
+    info: {}
+  
+  - name: experience_bottle
+    weight: 1
+    info: {}
+  
+  # Redstone Components
+  - name: redstone
+    weight: 1
+    info: {}
+  
+  - name: redstone_block
+    weight: 9
+    info: {}
+  
+  - name: observer
+    weight: 1
+    info: {}
+  
+  # Building Materials
+  - name: beacon
+    weight: 1
+    info: {}
+  
+  - name: shulker_box
+    weight: 1
+    info: {}
+  
+  # Example: Item with custom NBT data (uncomment and modify as needed)
+  # - name: custom_diamond
+  #   weight: 1
+  #   info:
+  #     display:
+  #       Name: '{"text":"Premium Diamond","color":"gold"}'
+  #       Lore:
+  #         - '{"text":"A special diamond with custom properties"}'
+  #         - '{"text":"Used for premium trading"}'
+
