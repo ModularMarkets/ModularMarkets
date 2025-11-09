@@ -1,4 +1,4 @@
-# Market Maker App
+# ModularMarkets
 
 A market making system that allows hosting websites for buying and selling non-liquid commodities across various platforms (games, services, IRL items).
 
@@ -7,25 +7,26 @@ A market making system that allows hosting websites for buying and selling non-l
 ```
 src/
 ├── __init__.py
-├── user.py              # User class for account management
-├── merchant.py          # Merchant class for item trading
-├── transaction.py       # Transaction data model
 ├── algorithm.py         # Algorithm interface and Result class
-├── platform.py          # Platform abstract base class
-├── shop.py              # Shop interface for managing merchants
-├── database.py          # Database initialization functions
-└── plugins/
-    ├── __init__.py
-    └── minecraft.py     # Minecraft platform implementation
+├── database.py         # Database connection and initialization functions
+├── merchant.py         # Merchant class for item trading
+├── models.py           # SQLAlchemy database models
+├── shop.py             # Shop interface for managing merchants
+├── plugins/
+│   ├── __init__.py
+│   ├── minecraft.py    # Minecraft platform implementation
+│   └── platform.py     # Platform abstract base class
+└── users/
+    └── user.py         # User class for account management
 ```
 
 ## Core Classes
 
 ### User
-Manages user accounts, authentication, balances, and linked accounts.
+Manages user accounts, authentication, balances, roles, and linked accounts.
 
 ### Merchant
-Handles individual item trading with buy/sell operations and price updates via algorithms.
+Handles individual item trading with buy/sell operations, price caps, and price updates via algorithms.
 
 ### Shop
 Manages collections of merchants and provides interface for merchant operations.
@@ -38,26 +39,34 @@ Interface for market making algorithms that calculate buy/sell prices.
 
 ## Required Libraries
 
-See `requirements.txt` for a list of suggested libraries. Key dependencies include:
+See `requirements.txt` for a list of dependencies. Key dependencies include:
 
-- **Database**: SQLAlchemy (for ORM), database-specific adapters
-- **Authentication**: Auth0 Python SDK
-- **HTTP Clients**: requests, aiohttp (for platform API interactions)
-- **Development**: mypy, pytest, black, flake8
+- **Database**: SQLAlchemy (for ORM)
+- **Environment**: python-dotenv (for loading .env files)
 
 ## Installation
+
+### Using Nix (Recommended for NixOS)
+
+```bash
+nix develop
+```
+
+### Using pip
 
 1. Install Python 3.12+
 2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-3. Set up environment variables (Auth0 credentials, database URLs, etc.)
+3. Set up environment variables:
+   ```bash
+   echo "DATABASE_URL=sqlite:///marketmaker.db" > .env
+   ```
 
 ## Notes
 
-- All classes are currently interface definitions without full implementations
+- Database integration uses SQLAlchemy ORM
 - Platform-specific plugins should inherit from the `Platform` abstract class
 - Algorithms should inherit from the `Algorithm` abstract class
-- Database integration is abstracted and needs to be implemented based on your chosen database
-
+- User roles: 0 = GUEST, 10 = USER, 100 = ADMIN
