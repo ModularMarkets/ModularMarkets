@@ -358,6 +358,53 @@ class MineflayerClient:
         
         return result
     
+    def deliver_item(
+        self,
+        bot_id: str,
+        item_name: str,
+        amount: int,
+        target_uuid: str,
+        timeout_seconds: int = 60
+    ) -> Dict[str, Any]:
+        """
+        Deliver items to a player by navigating to them and dropping items.
+        
+        Args:
+            bot_id: Unique identifier for the bot
+            item_name: Name of the item to deliver
+            amount: Amount to deliver
+            target_uuid: Target player's username or UUID
+            timeout_seconds: Maximum time to wait for delivery in seconds (default: 60)
+            
+        Returns:
+            Dictionary with result containing:
+            - success: bool
+            - item_name: str
+            - amount_dropped: int
+            - target_uuid: str
+            
+        Raises:
+            requests.RequestException: If the API request fails
+            ValueError: If the API response indicates failure
+        """
+        url = f"{self.api_url}/api/bot/{bot_id}/deliver-item"
+        
+        payload = {
+            "item_name": item_name,
+            "amount": amount,
+            "target_uuid": target_uuid
+        }
+        
+        response = self.session.post(url, json=payload, timeout=timeout_seconds + 10)
+        response.raise_for_status()
+        result = response.json()
+        
+        if not result.get('success', False):
+            error_msg = result.get('error', 'Unknown error')
+            raise ValueError(f"API returned failure: {error_msg}")
+        
+        return result
+    
     def is_available(self) -> bool:
         """
         Check if the API service is available.

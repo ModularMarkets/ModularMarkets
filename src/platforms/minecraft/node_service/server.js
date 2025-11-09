@@ -8,6 +8,8 @@
 import express from 'express';
 import cors from 'cors';
 import mineflayer from 'mineflayer';
+import pathfinder from 'mineflayer-pathfinder';
+import minecraftData from 'minecraft-data';
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -119,6 +121,8 @@ app.post('/api/bot/login', async (req, res) => {
     // Create and connect bot
     try {
       bot = mineflayer.createBot(botOptions);
+      // Load pathfinder plugin
+      bot.loadPlugin(pathfinder.pathfinder);
     } catch (err) {
       return res.status(500).json({
         success: false,
@@ -753,6 +757,264 @@ app.post('/api/bot/:bot_id/wait-for-items', async (req, res) => {
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to wait for items'
+    });
+  }
+});
+
+/**
+ * POST /api/bot/{bot_id}/deliver-item
+ * 
+ * Deliver items to a player by navigating to them and dropping items.
+ * 
+ * Request body:
+ * {
+ *   "item_name": "diamond",
+ *   "amount": 10,
+ *   "target_uuid": "player_username_or_uuid"
+ * }
+ */
+app.post('/api/bot/:bot_id/deliver-item', async (req, res) => {
+  try {
+    const bot_id = req.params.bot_id;
+    const { item_name, amount, target_uuid } = req.body;
+
+    // Validate required fields
+    if (!item_name || !amount || !target_uuid) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: item_name, amount, and target_uuid are required'
+      });
+    }
+
+    // Get bot
+    const botData = activeBots.get(bot_id);
+    if (!botData) {
+      return res.status(404).json({
+        success: false,
+        error: `Bot ${bot_id} not found`
+      });
+    }
+
+    const bot = botData.bot;
+
+    // Wait for bot to be fully spawned
+    if (!bot.entity || !bot.entity.position) {
+      // Wait for spawn event if not spawned yet
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Bot spawn timeout'));
+        }, 10000);
+        
+        if (bot.entity && bot.entity.position) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          bot.once('spawn', () => {
+            clearTimeout(timeout);
+            resolve();
+          });
+        }
+      });
+    }
+
+    // Find target player by username or UUID
+    let targetPlayer = null;
+    
+    // First try to find by username (case-insensitive)
+    const players = Object.values(bot.players);
+    for (const player of players) {
+      if (player.username && player.username.toLowerCase() === target_uuid.toLowerCase()) {
+        targetPlayer = player;
+        break;
+      }
+      // Also check UUID if available
+      if (player.uuid && player.uuid === target_uuid) {
+        targetPlayer = player;
+        break;
+      }
+    }
+
+    // If not found in players list, try to find by entity UUID
+    if (!targetPlayer) {
+      const entities = Object.values(bot.entities);
+      for (const entity of entities) {
+        if (entity.type === 'player' && entity.username) {
+          if (entity.username.toLowerCase() === target_uuid.toLowerCase() ||
+              (entity.uuid && entity.uuid === target_uuid)) {
+            targetPlayer = entity;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!targetPlayer || !targetPlayer.entity) {
+      return res.status(404).json({
+        success: false,
+        error: `Player ${target_uuid} not found`
+      });
+    }
+
+    // Get target position
+    const targetPos = targetPlayer.entity.position;
+    if (!targetPos) {
+      return res.status(400).json({
+        success: false,
+        error: 'Target player position not available'
+      });
+    }
+
+    // Calculate position 3 blocks away from target
+    const botPos = bot.entity.position;
+    const direction = {
+      x: targetPos.x - botPos.x,
+      y: targetPos.y - botPos.y,
+      z: targetPos.z - botPos.z
+    };
+    
+    // Normalize direction and scale to 3 blocks
+    const distance = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+    if (distance > 0) {
+      const scale = 3.0 / distance;
+      direction.x *= scale;
+      direction.y *= scale;
+      direction.z *= scale;
+    }
+
+    const goalPos = {
+      x: targetPos.x - direction.x,
+      y: targetPos.y - direction.y,
+      z: targetPos.z - direction.z
+    };
+
+    // Check if bot has the required items
+    const item = bot.inventory.items().find(item => {
+      const itemName = item.name.replace('minecraft:', '');
+      return itemName === item_name.replace('minecraft:', '');
+    });
+
+    if (!item || item.count < amount) {
+      return res.status(400).json({
+        success: false,
+        error: `Bot does not have enough ${item_name}. Has ${item ? item.count : 0}, needs ${amount}`
+      });
+    }
+
+    // Set up pathfinder movements
+    const mcData = minecraftData(bot.version);
+    const movements = new pathfinder.Movements(bot, mcData);
+    bot.pathfinder.setMovements(movements);
+
+    // Use pathfinder to navigate to goal position
+    const { GoalNear } = pathfinder.goals;
+    const goal = new GoalNear(goalPos.x, goalPos.y, goalPos.z, 1);
+    
+    // Navigate to goal position
+    try {
+      await bot.pathfinder.goto(goal);
+    } catch (pathError) {
+      return res.status(500).json({
+        success: false,
+        error: `Pathfinding failed: ${pathError.message}`
+      });
+    }
+
+    // Get current position after navigation
+    const currentPos = bot.entity.position;
+    const distanceToGoal = Math.sqrt(
+      Math.pow(currentPos.x - goalPos.x, 2) +
+      Math.pow(currentPos.y - goalPos.y, 2) +
+      Math.pow(currentPos.z - goalPos.z, 2)
+    );
+
+    // If we're not close enough, return error
+    if (distanceToGoal > 3) {
+      return res.status(500).json({
+        success: false,
+        error: `Failed to reach target position. Distance: ${distanceToGoal.toFixed(2)} blocks`
+      });
+    }
+
+    // Drop items towards the target player
+    try {
+      // Make bot look at the player before dropping
+      // Look at player's eye level (position + height offset)
+      let lookAtPos;
+      if (targetPos.offset) {
+        // Use offset method if available (Vec3-like object)
+        lookAtPos = targetPos.offset(0, targetPlayer.entity.height || 1.6, 0);
+      } else {
+        // Fallback to manual calculation
+        lookAtPos = {
+          x: targetPos.x,
+          y: targetPos.y + (targetPlayer.entity.height || 1.6),
+          z: targetPos.z
+        };
+      }
+      await bot.lookAt(lookAtPos);
+      
+      // Small delay to ensure look completes
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Drop items
+      let dropped = 0;
+      const itemsToDrop = bot.inventory.items().filter(invItem => {
+        const invItemName = invItem.name.replace('minecraft:', '');
+        return invItemName === item_name.replace('minecraft:', '');
+      });
+
+      for (const invItem of itemsToDrop) {
+        if (dropped >= amount) break;
+        
+        const dropAmount = Math.min(invItem.count, amount - dropped);
+        bot.toss(invItem.type, null, dropAmount);
+        dropped += dropAmount;
+        // Small delay between drops
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Wait a moment for items to be dropped
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Logout the bot after delivery
+      try {
+        bot.end('Delivery complete');
+        // Remove bot from active connections
+        activeBots.delete(bot_id);
+      } catch (logoutError) {
+        console.warn(`[${bot_id}] Warning: Error during logout: ${logoutError.message}`);
+        // Still remove from active connections even if logout fails
+        activeBots.delete(bot_id);
+      }
+
+      return res.json({
+        success: true,
+        bot_id: bot_id,
+        item_name: item_name,
+        amount_dropped: dropped,
+        target_uuid: target_uuid
+      });
+    } catch (dropError) {
+      // Try to logout even on error
+      try {
+        bot.end('Delivery failed');
+        activeBots.delete(bot_id);
+      } catch (logoutError) {
+        console.warn(`[${bot_id}] Warning: Error during logout after failure: ${logoutError.message}`);
+        activeBots.delete(bot_id);
+      }
+      
+      return res.status(500).json({
+        success: false,
+        error: `Failed to drop items: ${dropError.message}`
+      });
+    }
+
+  } catch (error) {
+    console.error('Deliver item error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to deliver item'
     });
   }
 });

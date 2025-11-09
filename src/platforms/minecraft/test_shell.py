@@ -59,8 +59,8 @@ Available commands:
   deposit <item> <amount>       - Deposit (retrieve) items (requires UUID)
   deposit-test <item> <amount>  - Deposit items with test UUID "test-user"
   
-  deliver <item> <amount> <uuid> - Deliver (withdraw) items to a user
-  deliver-test <item> <amount>   - Deliver items with test UUID "test-user"
+  deliver <item> <amount> <uuid>        - Deliver (withdraw) items to a user
+  deliver-test <item> <amount> [uuid]   - Deliver items (defaults to "test-user" if uuid not provided)
   
   bot-inventory <bot_id>        - Show bot's current inventory
   network-summary               - Show summary of all bots and their inventories
@@ -278,9 +278,10 @@ Examples:
             traceback.print_exc()
     
     def cmd_deliver_test(self, args):
-        """Deliver items with test UUID."""
+        """Deliver items with test UUID (or specified username/UUID)."""
         if len(args) < 2:
-            print("Usage: deliver-test <item_name> <amount>")
+            print("Usage: deliver-test <item_name> <amount> [uuid/username]")
+            print("  If uuid/username is not provided, defaults to 'test-user'")
             return
         
         item_name = args[0]
@@ -290,7 +291,8 @@ Examples:
             print(f"Error: amount must be a number, got '{args[1]}'")
             return
         
-        uuid = "test-user"
+        # Use provided UUID/username or default to "test-user"
+        uuid = args[2] if len(args) > 2 else "test-user"
         self.cmd_deliver([item_name, str(amount), uuid])
     
     def cmd_bot_inventory(self, args):
