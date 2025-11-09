@@ -33,14 +33,13 @@ from .models import MinecraftBase, MinecraftBotModel, MinecraftBotInventoryModel
 class MinecraftBot(Warehouse):
     """Minecraft bot that acts as a warehouse for item storage and delivery."""
     
-    def __init__(self, username: str, password: str, uuid: str, auth: str, trading_mode: str, bot_id: Optional[str] = None):
+    def __init__(self, username: str, password: str, auth: str, trading_mode: str, bot_id: Optional[str] = None):
         """
         Initialize a Minecraft bot.
         
         Args:
             username: Bot username
             password: Bot password
-            uuid: Bot UUID
             auth: Authentication type ('online' or 'offline')
             trading_mode: Trading mode ('drop', 'chat', or 'plugin')
             bot_id: Unique bot identifier (defaults to username if not provided)
@@ -48,7 +47,6 @@ class MinecraftBot(Warehouse):
         self.trading_mode: str = trading_mode
         self.username: str = username
         self.password: str = password
-        self.uuid: str = uuid
         self.auth: str = auth
         self.bot_id: str = bot_id if bot_id else username
         # Required Warehouse attributes
@@ -192,7 +190,6 @@ class MinecraftBot(Warehouse):
         if bot_model:
             # Update existing bot
             bot_model.username = self.username
-            bot_model.uuid = self.uuid
             bot_model.auth = self.auth
             bot_model.trading_mode = self.trading_mode
         else:
@@ -200,7 +197,6 @@ class MinecraftBot(Warehouse):
             bot_model = MinecraftBotModel(
                 bot_id=self.bot_id,
                 username=self.username,
-                uuid=self.uuid,
                 auth=self.auth,
                 trading_mode=self.trading_mode
             )
@@ -249,7 +245,6 @@ class MinecraftBot(Warehouse):
         bot = cls(
             username=bot_model.username,
             password=password,
-            uuid=bot_model.uuid,
             auth=bot_model.auth,
             trading_mode=bot_model.trading_mode,
             bot_id=bot_model.bot_id
@@ -440,6 +435,9 @@ class Minecraft(Platform):
         # Initialize network - load from SQL if exists, otherwise create new
         self._network: Optional[MinecraftBotNet] = MinecraftBotNet()
         self._load_network_from_sql()
+        
+        # Load bots from bots.yml config file (creates any missing bots)
+        self._load_bots_from_config(config_dir)
     
     def _get_minecraft_db(self) -> Any:
         """
@@ -561,6 +559,64 @@ class Minecraft(Platform):
         
         return items
     
+    def _load_bots_from_config(self, config_dir: Path) -> None:
+        """
+        Load bots from bots.yml file and create any that don't exist in the database.
+        
+        Passwords can be provided either:
+        - Directly in bots.yml file (password field)
+        - Via environment variables: MINECRAFT_BOT_PASSWORD_{USERNAME} (where USERNAME is uppercase)
+        
+        Args:
+            config_dir: Path to config directory (platforms/minecraft/confs/)
+        """
+        bots_path = config_dir / 'bots.yml'
+        
+        if not bots_path.exists():
+            # bots.yml is optional - if it doesn't exist, just return
+            return
+        
+        try:
+            with open(bots_path, 'r') as f:
+                data = yaml.safe_load(f) or {}
+                bots_data = data.get('bots', [])
+                
+                for bot_data in bots_data:
+                    username = bot_data.get('username')
+                    if not username:
+                        print(f"Warning: Bot entry missing username, skipping")
+                        continue
+                    
+                    auth = bot_data.get('auth', 'offline')
+                    bot_id = bot_data.get('bot_id', username)
+                    
+                    # Check if bot already exists in database
+                    existing_bot = self._db.query(MinecraftBotModel).filter(
+                        MinecraftBotModel.bot_id == bot_id
+                    ).first()
+                    
+                    if existing_bot:
+                        # Bot already exists, skip
+                        continue
+                    
+                    # Get password from config file, fallback to environment variable
+                    password = bot_data.get('password')
+                    if not password:
+                        password = self._get_bot_password(username)
+                    if not password:
+                        print(f"Warning: Password not found for bot {username} (set in bots.yml or MINECRAFT_BOT_PASSWORD_{username.upper()} env var), skipping creation")
+                        continue
+                    
+                    # Create the bot (this will add it to network and save to SQL)
+                    try:
+                        self.create_bot(username=username, password=password, auth=auth, bot_id=bot_id)
+                        print(f"Created bot: {username} (bot_id: {bot_id})")
+                    except Exception as e:
+                        print(f"Error creating bot {username}: {e}")
+                        
+        except Exception as e:
+            print(f"Warning: Could not load bots.yml: {e}")
+    
     def get_item_list(self) -> List[str]:
         """
         Lists items on the platform, iterate through possibleItems and return the ItemNames.
@@ -618,15 +674,15 @@ class Minecraft(Platform):
         # DUMMY: Returning test value
         return 0
     
-    def create_bot(self, username: str, password: str, uuid: str, auth: str) -> MinecraftBot:
+    def create_bot(self, username: str, password: str, auth: str, bot_id: Optional[str] = None) -> MinecraftBot:
         """
         Create the bot, add it to the network, and save to SQL.
         
         Args:
             username: Bot username
             password: Bot password
-            uuid: Bot UUID
             auth: Authentication type ('online' or 'offline')
+            bot_id: Optional unique bot identifier (defaults to username if not provided)
             
         Returns:
             Created MinecraftBot instance
@@ -635,9 +691,9 @@ class Minecraft(Platform):
         bot = MinecraftBot(
             username=username,
             password=password,
-            uuid=uuid,
             auth=auth,
-            trading_mode=self._trading_mode
+            trading_mode=self._trading_mode,
+            bot_id=bot_id
         )
         
         # Set db session reference so bot can save to SQL automatically

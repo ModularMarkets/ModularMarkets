@@ -19,6 +19,9 @@ marketmaker.db
 .env
 .env.local
 
+# Minecraft platform config (contains passwords)
+src/platforms/minecraft/confs/bots.yml
+
 # IDE
 .vscode/
 .idea/

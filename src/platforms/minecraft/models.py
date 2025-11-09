@@ -20,10 +20,10 @@ class MinecraftBotModel(MinecraftBase):
     __tablename__ = 'minecraft_bots'
     bot_id = Column(String, primary_key=True)  # Use username as bot_id
     username = Column(String, unique=True, nullable=False)
-    uuid = Column(String, nullable=False)
     auth = Column(String, nullable=False)  # 'online' or 'offline'
     trading_mode = Column(String, nullable=False)  # 'drop', 'chat', or 'plugin'
     # Note: password is NOT stored for security reasons
+    # Note: UUID is automatically assigned by Minecraft during authentication and not stored
 
 
 class MinecraftBotInventoryModel(MinecraftBase):
