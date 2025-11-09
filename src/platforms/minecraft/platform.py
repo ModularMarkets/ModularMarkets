@@ -568,7 +568,7 @@ class Minecraft(Platform):
         Returns:
             List of item names
         """
-        pass
+        return [item.item_name for item in self._possible_items]
     
     def deliver_item(self, item_name: str, amount: int, uuid: str) -> int:
         """
