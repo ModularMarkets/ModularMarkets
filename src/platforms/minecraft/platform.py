@@ -624,10 +624,7 @@ class Minecraft(Platform):
         Returns:
             List of item names
         """
-        # TODO: Return actual item list from possibleItems
-        # return [item.item_name for item in self._possible_items]
-        # DUMMY: Returning test list
-        return ["test_item_1", "test_item_2", "test_item_3"]
+        return [item.item_name for item in self._possible_items]
     
     def deliver_item(self, item_name: str, amount: int, uuid: str) -> int:
         """
