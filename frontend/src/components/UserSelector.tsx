@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { CreateUserModal } from './CreateUserModal';
+import { LinkAccountModal } from './LinkAccountModal';
 import './UserSelector.css';
 
 export const UserSelector: React.FC = () => {
   const { currentUser, users, setCurrentUser, refreshUsers } = useApp();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showLinkAccountModal, setShowLinkAccountModal] = useState(false);
 
   const handleUserChange = (username: string) => {
     const user = users.find(u => u.username === username);
@@ -15,6 +17,18 @@ export const UserSelector: React.FC = () => {
   const handleUserCreated = async () => {
     await refreshUsers();
     setShowCreateModal(false);
+  };
+
+  const handleAccountLinked = async () => {
+    await refreshUsers();
+    // Update current user if it's the one that was modified
+    if (currentUser) {
+      const updated = users.find(u => u.username === currentUser.username);
+      if (updated) {
+        setCurrentUser(updated);
+      }
+    }
+    setShowLinkAccountModal(false);
   };
 
   return (
@@ -38,10 +52,26 @@ export const UserSelector: React.FC = () => {
       >
         +
       </button>
+      {currentUser && (
+        <button
+          onClick={() => setShowLinkAccountModal(true)}
+          className="btn-link-account"
+          title="Link Platform Account"
+        >
+          🔗
+        </button>
+      )}
       {showCreateModal && (
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleUserCreated}
+        />
+      )}
+      {showLinkAccountModal && currentUser && (
+        <LinkAccountModal
+          user={currentUser}
+          onClose={() => setShowLinkAccountModal(false)}
+          onSuccess={handleAccountLinked}
         />
       )}
     </div>

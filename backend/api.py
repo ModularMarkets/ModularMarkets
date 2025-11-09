@@ -81,6 +81,10 @@ class CreateUserRequest(BaseModel):
     linked_accounts: Dict[str, str] = {}
 
 
+class UpdateLinkedAccountsRequest(BaseModel):
+    linked_accounts: Dict[str, str]
+
+
 class CreateShopRequest(BaseModel):
     shop_id: str
     platform_type: str
@@ -202,6 +206,31 @@ async def create_user(request: CreateUserRequest, state: Dict = Depends(get_app_
     
     # Add to app state
     users[request.username] = user
+    
+    return UserResponse(
+        username=user.username,
+        display_name=user.display_name,
+        balance=user.balance,
+        role=user.role,
+        linked_accounts=user.linked_accounts
+    )
+
+
+@app.put("/api/users/{username}/linked-accounts", response_model=UserResponse)
+async def update_linked_accounts(
+    username: str,
+    request: UpdateLinkedAccountsRequest,
+    state: Dict = Depends(get_app_state)
+):
+    """Update linked accounts for a user."""
+    users = state['users']
+    
+    if username not in users:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user = users[username]
+    user.linked_accounts = request.linked_accounts
+    user.save()
     
     return UserResponse(
         username=user.username,

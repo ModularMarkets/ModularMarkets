@@ -72,6 +72,11 @@ export const apiClient = {
     return response.data;
   },
 
+  updateLinkedAccounts: async (username: string, linkedAccounts: Record<string, string>): Promise<User> => {
+    const response = await api.put<User>(`/users/${username}/linked-accounts`, { linked_accounts: linkedAccounts });
+    return response.data;
+  },
+
   // Shops
   getShops: async (): Promise<Shop[]> => {
     const response = await api.get<Shop[]>('/shops');
