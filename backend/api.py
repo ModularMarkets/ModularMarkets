@@ -387,10 +387,20 @@ async def buy_item(shop_id: str, item: str, request: BuyRequest, state: Dict = D
     
     try:
         merchant.buy(request.quantity, user)
+        # Return updated merchant info including new prices
+        merchant_info = MerchantInfo(
+            item=merchant.item,
+            buy_price=merchant.buy_price,
+            sell_price=merchant.sell_price,
+            buy_cap=merchant.buy_cap,
+            sell_cap=merchant.sell_cap,
+            algorithm_name=merchant.algo.algorithm_name
+        )
         return {
             "success": True,
             "message": f"Bought {request.quantity} {item}",
-            "new_balance": user.balance
+            "new_balance": user.balance,
+            "merchant": merchant_info.dict()
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -416,10 +426,20 @@ async def sell_item(shop_id: str, item: str, request: SellRequest, state: Dict =
     
     try:
         merchant.sell(request.quantity, user)
+        # Return updated merchant info including new prices
+        merchant_info = MerchantInfo(
+            item=merchant.item,
+            buy_price=merchant.buy_price,
+            sell_price=merchant.sell_price,
+            buy_cap=merchant.buy_cap,
+            sell_cap=merchant.sell_cap,
+            algorithm_name=merchant.algo.algorithm_name
+        )
         return {
             "success": True,
             "message": f"Sold {request.quantity} {item}",
-            "new_balance": user.balance
+            "new_balance": user.balance,
+            "merchant": merchant_info.dict()
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

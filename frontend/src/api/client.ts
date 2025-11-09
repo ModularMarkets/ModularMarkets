@@ -104,12 +104,12 @@ export const apiClient = {
     return response.data;
   },
 
-  buyItem: async (shopId: string, item: string, quantity: number, username: string): Promise<{ success: boolean; message: string; new_balance: number }> => {
+  buyItem: async (shopId: string, item: string, quantity: number, username: string): Promise<{ success: boolean; message: string; new_balance: number; merchant: MerchantInfo }> => {
     const response = await api.post(`/shops/${shopId}/merchants/${item}/buy`, { quantity, username });
     return response.data;
   },
 
-  sellItem: async (shopId: string, item: string, quantity: number, username: string): Promise<{ success: boolean; message: string; new_balance: number }> => {
+  sellItem: async (shopId: string, item: string, quantity: number, username: string): Promise<{ success: boolean; message: string; new_balance: number; merchant: MerchantInfo }> => {
     const response = await api.post(`/shops/${shopId}/merchants/${item}/sell`, { quantity, username });
     return response.data;
   },

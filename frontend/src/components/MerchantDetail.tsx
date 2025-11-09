@@ -10,8 +10,9 @@ interface MerchantDetailProps {
   onClose: () => void;
 }
 
-export const MerchantDetail: React.FC<MerchantDetailProps> = ({ merchant, shopId, onClose }) => {
-  const { currentUser, refreshUsers } = useApp();
+export const MerchantDetail: React.FC<MerchantDetailProps> = ({ merchant: initialMerchant, shopId, onClose }) => {
+  const { currentUser, refreshUsers, refreshShops } = useApp();
+  const [merchant, setMerchant] = useState<MerchantInfo>(initialMerchant);
   const [stock, setStock] = useState<number | null>(null);
   const [buyQuantity, setBuyQuantity] = useState(1);
   const [sellQuantity, setSellQuantity] = useState(1);
@@ -19,6 +20,11 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({ merchant, shopId
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loadingStock, setLoadingStock] = useState(true);
+
+  // Update merchant when prop changes
+  useEffect(() => {
+    setMerchant(initialMerchant);
+  }, [initialMerchant]);
 
   useEffect(() => {
     const loadStock = async () => {
@@ -47,7 +53,12 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({ merchant, shopId
     try {
       const result = await apiClient.buyItem(shopId, merchant.item, buyQuantity, currentUser.username);
       setSuccess(result.message);
+      // Update merchant with new prices from response
+      if (result.merchant) {
+        setMerchant(result.merchant);
+      }
       await refreshUsers();
+      await refreshShops(); // Refresh shops to update merchant list
       // Reload stock
       const stockData = await apiClient.getStock(shopId, merchant.item);
       setStock(stockData.stock);
@@ -70,7 +81,12 @@ export const MerchantDetail: React.FC<MerchantDetailProps> = ({ merchant, shopId
     try {
       const result = await apiClient.sellItem(shopId, merchant.item, sellQuantity, currentUser.username);
       setSuccess(result.message);
+      // Update merchant with new prices from response
+      if (result.merchant) {
+        setMerchant(result.merchant);
+      }
       await refreshUsers();
+      await refreshShops(); // Refresh shops to update merchant list
       // Reload stock
       const stockData = await apiClient.getStock(shopId, merchant.item);
       setStock(stockData.stock);
