@@ -6,8 +6,8 @@ import yaml
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
-from .platform import Platform
-from .utils.logistics import StorageNetwork, Warehouse, Item, Inv
+from ..platform import Platform
+from ..utils.logistics import StorageNetwork, Warehouse, Item, Inv
 
 
 class MinecraftBot(Warehouse):
@@ -181,8 +181,8 @@ class Minecraft(Platform):
             *args: Variable length argument list
             **kwargs: Arbitrary keyword arguments
         """
-        # Get config directory (platforms/confs/minecraft/)
-        config_dir = Path(__file__).parent / 'confs' / 'minecraft'
+        # Get config directory (platforms/minecraft/confs/)
+        config_dir = Path(__file__).parent / 'confs'
         
         # Load configuration from environment variables or config.yml
         config = self._load_config(config_dir)
@@ -223,7 +223,7 @@ class Minecraft(Platform):
         Load configuration from config.yml file.
         
         Args:
-            config_dir: Path to config directory (platforms/confs/minecraft/)
+            config_dir: Path to config directory (platforms/minecraft/confs/)
             
         Returns:
             Dictionary containing configuration values
@@ -255,7 +255,7 @@ class Minecraft(Platform):
         - Enchantments: List of enchantments (if relevant for trading)
         
         Args:
-            config_dir: Path to config directory (platforms/confs/minecraft/)
+            config_dir: Path to config directory (platforms/minecraft/confs/)
             
         Returns:
             List of Item objects
