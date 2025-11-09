@@ -181,7 +181,7 @@ class Minecraft(Platform):
             *args: Variable length argument list
             **kwargs: Arbitrary keyword arguments
         """
-        # Get config directory (plugins/confs/minecraft/)
+        # Get config directory (platforms/confs/minecraft/)
         config_dir = Path(__file__).parent / 'confs' / 'minecraft'
         
         # Load configuration from environment variables or config.yml
@@ -223,7 +223,7 @@ class Minecraft(Platform):
         Load configuration from config.yml file.
         
         Args:
-            config_dir: Path to config directory (plugins/confs/minecraft/)
+            config_dir: Path to config directory (platforms/confs/minecraft/)
             
         Returns:
             Dictionary containing configuration values
@@ -255,7 +255,7 @@ class Minecraft(Platform):
         - Enchantments: List of enchantments (if relevant for trading)
         
         Args:
-            config_dir: Path to config directory (plugins/confs/minecraft/)
+            config_dir: Path to config directory (platforms/confs/minecraft/)
             
         Returns:
             List of Item objects
