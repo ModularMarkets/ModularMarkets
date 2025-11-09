@@ -568,7 +568,10 @@ class Minecraft(Platform):
         Returns:
             List of item names
         """
-        return [item.item_name for item in self._possible_items]
+        # TODO: Return actual item list from possibleItems
+        # return [item.item_name for item in self._possible_items]
+        # DUMMY: Returning test list
+        return []
     
     def deliver_item(self, item_name: str, amount: int, uuid: str) -> int:
         """
@@ -583,7 +586,8 @@ class Minecraft(Platform):
         Returns:
             0 if success, non-zero error code if failure
         """
-        pass
+        # DUMMY: Returning test value
+        return 0
     
     def retrieve_item(self, item_name: str, amount: int, uuid: str) -> int:
         """
@@ -598,7 +602,8 @@ class Minecraft(Platform):
         Returns:
             0 if success, non-zero error code if failure
         """
-        pass
+        # DUMMY: Returning test value
+        return 0
     
     def get_stock(self, item_name: str) -> int:
         """
@@ -610,7 +615,8 @@ class Minecraft(Platform):
         Returns:
             Current stock level
         """
-        pass
+        # DUMMY: Returning test value
+        return 0
     
     def create_bot(self, username: str, password: str, uuid: str, auth: str) -> MinecraftBot:
         """
