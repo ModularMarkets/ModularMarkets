@@ -29,7 +29,7 @@ class InventoryMarketMaker(Algorithm):
     
     def __init__(self):
         # Target inventory level
-        self.target_inventory = 10000
+        self.target_inventory = 100
         
         # Minimum spread percentage (profit margin)
         self.min_spread_pct = 0.10  # 10% minimum spread
@@ -85,19 +85,49 @@ class InventoryMarketMaker(Algorithm):
         reference_price = current_mid  # Default to current mid-price
         
         ordered_txns = past_transactions.order_by(TransactionModel.timestamp.desc()).all()
+        
+        # DEBUG: Print transaction information
+        print(f"\n=== ALGORITHM DEBUG ===")
+        print(f"Current prices: buy={buy_price:.2f}, sell={sell_price:.2f}, mid={current_mid:.2f}")
+        print(f"Current stock: {stock}, target: {self.target_inventory}")
+        print(f"Total transactions in query: {len(ordered_txns)}")
+        
         if ordered_txns:
             recent_txns = ordered_txns[:self.lookback_window]
+            print(f"Using {len(recent_txns)} recent transactions (lookback={self.lookback_window})")
+            
             if recent_txns:
+                # Show sample of recent transactions
+                print(f"\nLast 10 transactions:")
+                for i, txn in enumerate(recent_txns[:10]):
+                    print(f"  [{i+1}] {txn.type:4s} | qty={txn.quantity:3d} | price={txn.price:8.2f} | time={txn.timestamp}")
+                
                 # Simple quantity-weighted average
                 total_quantity = sum(txn.quantity for txn in recent_txns)
+                buy_quantity = sum(txn.quantity for txn in recent_txns if txn.type == "buy")
+                sell_quantity = sum(txn.quantity for txn in recent_txns if txn.type == "sell")
+                
+                print(f"\nTransaction summary:")
+                print(f"  Total quantity: {total_quantity}")
+                print(f"  Buy quantity: {buy_quantity}")
+                print(f"  Sell quantity: {sell_quantity}")
+                
                 if total_quantity > 0:
                     weighted_sum = sum(txn.price * txn.quantity for txn in recent_txns)
                     reference_price = weighted_sum / total_quantity
+                    print(f"  Weighted avg price: {reference_price:.2f}")
                 else:
                     reference_price = recent_txns[0].price
+                    print(f"  Using first transaction price: {reference_price:.2f}")
                 
                 # Blend with current mid-price for stability (80% historical, 20% current)
+                old_ref = reference_price
                 reference_price = 0.8 * reference_price + 0.2 * current_mid
+                print(f"  Blended reference: {old_ref:.2f} -> {reference_price:.2f} (80% historical, 20% current)")
+        else:
+            print("No transactions found - using current mid-price as reference")
+        
+        print(f"Final reference price: {reference_price:.2f}")
         
         # STEP 2: Calculate inventory deviation
         inventory_deviation = stock - self.target_inventory
@@ -139,5 +169,16 @@ class InventoryMarketMaker(Algorithm):
         # Ensure prices are positive and buy_price > sell_price
         new_sell = max(new_sell, 0.01)
         new_buy = max(new_buy, new_sell + 0.01)
+        
+        # DEBUG: Print final calculations
+        print(f"\nCalculations:")
+        print(f"  Inventory ratio: {inventory_ratio:.4f} (deviation: {inventory_deviation})")
+        print(f"  Price adjustment: {price_adjustment:.2f}")
+        print(f"  New mid-price: {new_mid:.2f}")
+        print(f"  Spread: {spread_pct*100:.1f}% ({spread_amount:.2f})")
+        print(f"  New buy price: {new_buy:.2f}")
+        print(f"  New sell price: {new_sell:.2f}")
+        print(f"  Actual spread: {new_buy - new_sell:.2f} ({((new_buy - new_sell) / new_mid * 100):.1f}%)")
+        print(f"=== END DEBUG ===\n")
         
         return Result(new_buy=new_buy, new_sell=new_sell)
