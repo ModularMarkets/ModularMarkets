@@ -49,8 +49,12 @@ See `requirements.txt` for a list of dependencies. Key dependencies include:
 ### Using Nix (Recommended for NixOS)
 
 ```bash
-nix develop
+nix develop                    # All platforms
+nix develop .#minecraft-only   # Minecraft only
+nix develop .#core-only        # Core only (no platforms)
 ```
+
+The flake automatically installs dependencies from `requirements.txt` files. To add a new platform, add it to the `platforms` list in `flake.nix`.
 
 ### Using pip
 
