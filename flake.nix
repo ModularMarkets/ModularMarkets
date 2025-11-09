@@ -49,6 +49,8 @@
               pkgs.openssl
               pkgs.zlib
               pkgs.sqlite
+              pkgs.nodejs_20
+              pkgs.nodePackages.npm
             ];
             
             shellHook = ''
@@ -93,11 +95,14 @@
               echo ""
               echo "Market Maker App development environment"
               echo "Python: $(python --version)"
+              echo "Node.js: $(node --version)"
+              echo "npm: $(npm --version)"
               echo "Enabled platforms: ${if platforms == [] then "none" else builtins.concatStringsSep ", " platforms}"
               echo "Venv active: $VENV_DIR"
               echo ""
               echo "Run tests with: pytest tests/"
-              echo "Run API server with: python main.py"
+              echo "Run API server with: python backend/main.py"
+              echo "Run frontend with: cd frontend && npm run dev"
             '';
           };
         

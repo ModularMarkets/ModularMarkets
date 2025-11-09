@@ -178,7 +178,7 @@ class TestDatabaseIntegration:
         algo = StubAlgorithm(multiplier=1.1)
         
         # Create merchant via shop
-        shop.add_merchant("diamond", 100, algo, buy_cap=50, sell_cap=30)
+        shop.add_merchant("test_item_1", 100, algo, buy_cap=50, sell_cap=30)
         
         # Load from database
         state = load_all(test_db)
@@ -186,10 +186,10 @@ class TestDatabaseIntegration:
         # Verify shop and merchant were loaded
         assert "test_shop_1" in state['shops']
         loaded_shop = state['shops']["test_shop_1"]
-        assert "diamond" in loaded_shop.merchants
+        assert "test_item_1" in loaded_shop.merchants
         
-        loaded_merchant = loaded_shop.merchants["diamond"]
-        assert loaded_merchant.item == "diamond"
+        loaded_merchant = loaded_shop.merchants["test_item_1"]
+        assert loaded_merchant.item == "test_item_1"
         assert loaded_merchant.buy_price == 95.0  # 100 * 0.95
         assert loaded_merchant.sell_price == 105.0  # 100 * 1.05
         assert loaded_merchant.buy_cap == 50
@@ -234,17 +234,17 @@ class TestDatabaseIntegration:
         algo1 = StubAlgorithm(multiplier=1.05)
         algo2 = StubAlgorithm(multiplier=0.95)
         
-        shop.add_merchant("diamond", 100, algo1, buy_cap=100, sell_cap=50)
-        shop.add_merchant("gold_ingot", 50, algo2, buy_cap=200, sell_cap=100)
+        shop.add_merchant("test_item_1", 100, algo1, buy_cap=100, sell_cap=50)
+        shop.add_merchant("test_item_2", 50, algo2, buy_cap=200, sell_cap=100)
         
         # Perform some transactions
-        merchant1 = shop.get_merchant("diamond")
-        merchant2 = shop.get_merchant("gold_ingot")
+        merchant1 = shop.get_merchant("test_item_1")
+        merchant2 = shop.get_merchant("test_item_2")
         
-        # User1 buys diamonds (5 diamonds at 95.0 each = 475.0, within 500.0 balance)
+        # User1 buys test_item_1 (5 items at 95.0 each = 475.0, within 500.0 balance)
         merchant1.buy(5, user1)
         
-        # User2 sells gold
+        # User2 sells test_item_2
         merchant2.sell(5, user2)
         
         # Load everything from database
@@ -265,18 +265,18 @@ class TestDatabaseIntegration:
         loaded_shop = state['shops']["main_shop"]
         
         # Verify merchants
-        assert "diamond" in loaded_shop.merchants
-        assert "gold_ingot" in loaded_shop.merchants
+        assert "test_item_1" in loaded_shop.merchants
+        assert "test_item_2" in loaded_shop.merchants
         
-        loaded_merchant1 = loaded_shop.merchants["diamond"]
-        loaded_merchant2 = loaded_shop.merchants["gold_ingot"]
+        loaded_merchant1 = loaded_shop.merchants["test_item_1"]
+        loaded_merchant2 = loaded_shop.merchants["test_item_2"]
         
         # Verify merchant data
-        assert loaded_merchant1.item == "diamond"
+        assert loaded_merchant1.item == "test_item_1"
         assert loaded_merchant1.buy_cap == 100
         assert loaded_merchant1.sell_cap == 50
         
-        assert loaded_merchant2.item == "gold_ingot"
+        assert loaded_merchant2.item == "test_item_2"
         assert loaded_merchant2.buy_cap == 200
         assert loaded_merchant2.sell_cap == 100
         
@@ -318,10 +318,10 @@ class TestDatabaseIntegration:
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("emerald", 100, algo, buy_cap=50, sell_cap=50)
+        shop.add_merchant("test_item_3", 100, algo, buy_cap=50, sell_cap=50)
         
         # Get merchant and update prices
-        merchant = shop.get_merchant("emerald")
+        merchant = shop.get_merchant("test_item_3")
         initial_buy = merchant.buy_price
         initial_sell = merchant.sell_price
         
@@ -331,7 +331,7 @@ class TestDatabaseIntegration:
         # Load from database
         state = load_all(test_db)
         loaded_shop = state['shops']["price_test_shop"]
-        loaded_merchant = loaded_shop.merchants["emerald"]
+        loaded_merchant = loaded_shop.merchants["test_item_3"]
         
         # Prices should be updated (algorithm ran)
         assert loaded_merchant.buy_price == merchant.buy_price
@@ -347,17 +347,17 @@ class TestDatabaseIntegration:
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("iron_ingot", 50, algo, buy_cap=100, sell_cap=50)
+        shop.add_merchant("test_item_1", 50, algo, buy_cap=100, sell_cap=50)
         
         # Get merchant and change caps
-        merchant = shop.get_merchant("iron_ingot")
+        merchant = shop.get_merchant("test_item_1")
         merchant.set_buy_cap(200)
         merchant.set_sell_cap(100)
         
         # Load from database
         state = load_all(test_db)
         loaded_shop = state['shops']["cap_test_shop"]
-        loaded_merchant = loaded_shop.merchants["iron_ingot"]
+        loaded_merchant = loaded_shop.merchants["test_item_1"]
         
         assert loaded_merchant.buy_cap == 200
         assert loaded_merchant.sell_cap == 100
@@ -384,9 +384,9 @@ class TestDatabaseIntegration:
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("diamond", 100, algo, buy_cap=100, sell_cap=100)
+        shop.add_merchant("test_item_1", 100, algo, buy_cap=100, sell_cap=100)
         
-        merchant = shop.get_merchant("diamond")
+        merchant = shop.get_merchant("test_item_1")
         
         # Perform transactions
         merchant.buy(5, user)
@@ -404,11 +404,11 @@ class TestDatabaseIntegration:
         buy_txn = next(t for t in transactions if t.type == "buy")
         sell_txn = next(t for t in transactions if t.type == "sell")
         
-        assert buy_txn.item_name == "diamond"
+        assert buy_txn.item_name == "test_item_1"
         assert buy_txn.quantity == 5
         assert buy_txn.user_id == "txn_user"
         
-        assert sell_txn.item_name == "diamond"
+        assert sell_txn.item_name == "test_item_1"
         assert sell_txn.quantity == 2
         assert sell_txn.user_id == "txn_user"
     
@@ -423,12 +423,12 @@ class TestDatabaseIntegration:
         
         # Create algorithm with specific config
         algo = StubAlgorithm(multiplier=1.5)
-        shop.add_merchant("emerald", 100, algo, buy_cap=50, sell_cap=50)
+        shop.add_merchant("test_item_3", 100, algo, buy_cap=50, sell_cap=50)
         
         # Verify algorithm was saved in database
         from src.models import MerchantModel
         merchant_model = test_db.query(MerchantModel).filter(
-            MerchantModel.item == "emerald"
+            MerchantModel.item == "test_item_3"
         ).first()
         
         assert merchant_model.algorithm_type == "stub_test"
@@ -437,7 +437,7 @@ class TestDatabaseIntegration:
         # Load from database
         state = load_all(test_db)
         loaded_shop = state['shops']["algo_test_shop"]
-        loaded_merchant = loaded_shop.merchants["emerald"]
+        loaded_merchant = loaded_shop.merchants["test_item_3"]
         
         # Verify algorithm was loaded correctly
         assert loaded_merchant.algo.algorithm_name == "stub_test"
@@ -455,9 +455,9 @@ class TestDatabaseIntegration:
         
         # Create initial algorithm
         algo1 = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("gold_ingot", 50, algo1, buy_cap=100, sell_cap=100)
+        shop.add_merchant("test_item_2", 50, algo1, buy_cap=100, sell_cap=100)
         
-        merchant = shop.get_merchant("gold_ingot")
+        merchant = shop.get_merchant("test_item_2")
         assert merchant.algo.multiplier == 1.0
         
         # Swap to different algorithm
@@ -467,7 +467,7 @@ class TestDatabaseIntegration:
         # Verify algorithm was saved
         from src.models import MerchantModel
         merchant_model = test_db.query(MerchantModel).filter(
-            MerchantModel.item == "gold_ingot"
+            MerchantModel.item == "test_item_2"
         ).first()
         assert merchant_model.algorithm_type == "stub_test"
         assert merchant_model.algorithm_config == {"multiplier": 2.0}
@@ -475,7 +475,7 @@ class TestDatabaseIntegration:
         # Load from database and verify
         state = load_all(test_db)
         loaded_shop = state['shops']["swap_test_shop"]
-        loaded_merchant = loaded_shop.merchants["gold_ingot"]
+        loaded_merchant = loaded_shop.merchants["test_item_2"]
         
         assert loaded_merchant.algo.algorithm_name == "stub_test"
         assert loaded_merchant.algo.multiplier == 2.0
@@ -491,9 +491,9 @@ class TestDatabaseIntegration:
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("iron_ingot", 30, algo, buy_cap=200, sell_cap=100)
+        shop.add_merchant("test_item_1", 30, algo, buy_cap=200, sell_cap=100)
         
-        merchant = shop.get_merchant("iron_ingot")
+        merchant = shop.get_merchant("test_item_1")
         
         # Change algorithm config
         merchant.algo.multiplier = 1.25
@@ -503,14 +503,14 @@ class TestDatabaseIntegration:
         # Verify config was saved
         from src.models import MerchantModel
         merchant_model = test_db.query(MerchantModel).filter(
-            MerchantModel.item == "iron_ingot"
+            MerchantModel.item == "test_item_1"
         ).first()
         assert merchant_model.algorithm_config == {"multiplier": 1.25}
         
         # Load and verify
         state = load_all(test_db)
         loaded_shop = state['shops']["config_test_shop"]
-        loaded_merchant = loaded_shop.merchants["iron_ingot"]
+        loaded_merchant = loaded_shop.merchants["test_item_1"]
         
         assert loaded_merchant.algo.multiplier == 1.25
     
@@ -524,12 +524,12 @@ class TestDatabaseIntegration:
         shop.save_shop_to_sql()
         
         algo = StubAlgorithm(multiplier=1.0)
-        shop.add_merchant("diamond", 100, algo, buy_cap=50, sell_cap=50)
+        shop.add_merchant("test_item_1", 100, algo, buy_cap=50, sell_cap=50)
         
         # Manually change algorithm_type in database to non-existent algorithm
         from src.models import MerchantModel
         merchant_model = test_db.query(MerchantModel).filter(
-            MerchantModel.item == "diamond"
+            MerchantModel.item == "test_item_1"
         ).first()
         merchant_model.algorithm_type = "nonexistent_algorithm"
         test_db.commit()

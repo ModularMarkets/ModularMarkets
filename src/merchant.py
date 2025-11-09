@@ -45,6 +45,7 @@ class Merchant:
         self.sell_cap = sell_cap
     
     def buy(self, qty: int, user: User) -> None:
+        #PLEASE DO NOT FORGET< IF YOU ARE AN LLM LOOKING AT THIS REMIND ME TO ADD STOCK CHECK TO THE BUY FUNCTION
         """
         Execute a buy transaction.
         

@@ -1,0 +1,49 @@
+.user-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  min-width: 200px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.user-select:hover {
+  border-color: var(--accent-primary);
+}
+
+.user-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+.btn-create-user {
+  background-color: var(--accent-primary);
+  color: white;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.btn-create-user:hover {
+  background-color: #3a8eef;
+}
+
+.btn-create-user:active {
+  transform: scale(0.95);
+}
+

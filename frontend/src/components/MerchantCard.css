@@ -1,0 +1,94 @@
+.merchant-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.merchant-card:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--shadow);
+}
+
+.merchant-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.merchant-item-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.merchant-algorithm {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.merchant-card-prices {
+  margin-bottom: 1rem;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.price-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.price-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.buy-price {
+  color: var(--accent-success);
+}
+
+.sell-price {
+  color: var(--accent-danger);
+}
+
+.merchant-card-caps {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.cap-info {
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .merchant-card {
+    padding: 1rem;
+  }
+
+  .merchant-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

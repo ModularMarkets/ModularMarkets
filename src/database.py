@@ -14,6 +14,16 @@ from .algorithm import Algorithm, Result
 
 load_dotenv()
 
+# Platform registry: maps platform type names to their classes
+# Add new platforms here as they are implemented
+PLATFORM_REGISTRY: Dict[str, Any] = {
+    # Example entries (uncomment when platforms are implemented):
+    # "Minecraft": Minecraft,  # Will be set below after import
+    # "CSGO": CSGOPlatform,
+    # "Roblox": RobloxPlatform,
+    # Add your platform classes here
+}
+
 # Algorithm registry: maps algorithm names to their classes
 # Add new algorithms here as they are implemented
 ALGORITHM_REGISTRY: Dict[str, Any] = {
@@ -37,7 +47,7 @@ def get_db():
 
 def _create_platform(platform_type: str) -> Any:
     """
-    Create platform instance from type.
+    Create platform instance from type using the platform registry.
     Platforms load their own configuration from environment variables or config files.
     
     Args:
@@ -45,13 +55,29 @@ def _create_platform(platform_type: str) -> Any:
         
     Returns:
         Platform instance
+        
+    Raises:
+        ValueError: If platform_type is empty or platform is not found in registry
+        RuntimeError: If platform creation fails
     """
-    if platform_type == "Minecraft":
-        from .platforms.minecraft import Minecraft
-        # Minecraft class loads config from env vars or config files
-        return Minecraft()
-    else:
-        raise ValueError(f"Unknown platform type: {platform_type}")
+    if not platform_type:
+        raise ValueError("Cannot create platform: platform_type is empty")
+    
+    # Look up platform in registry
+    if platform_type not in PLATFORM_REGISTRY:
+        raise ValueError(
+            f"Platform '{platform_type}' not found in registry. "
+            f"Available platforms: {list(PLATFORM_REGISTRY.keys())}"
+        )
+    
+    platform_class = PLATFORM_REGISTRY[platform_type]
+    try:
+        # Create platform instance (platforms load their own config from env/config files)
+        return platform_class()
+    except Exception as e:
+        raise RuntimeError(
+            f"Failed to create platform '{platform_type}': {str(e)}"
+        ) from e
 
 
 def _create_algorithm(algorithm_name: str, config: dict) -> Any:
@@ -107,6 +133,10 @@ class StubAlgorithm(Algorithm):
 
 # Register the stub algorithm
 ALGORITHM_REGISTRY["stub"] = StubAlgorithm
+
+# Register platforms (import here to avoid circular dependencies)
+from .platforms.minecraft import Minecraft
+PLATFORM_REGISTRY["Minecraft"] = Minecraft
 
 
 def _create_stub_algorithm() -> Any:
