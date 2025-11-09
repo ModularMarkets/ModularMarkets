@@ -2,6 +2,9 @@
 Database connection, session management, and initialization functions.
 """
 import os
+import importlib
+import inspect
+from pathlib import Path
 from typing import Dict, Any
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -14,26 +17,127 @@ from .algorithm import Algorithm, Result
 
 load_dotenv()
 
-# Platform registry: maps platform type names to their classes
-# Add new platforms here as they are implemented
-PLATFORM_REGISTRY: Dict[str, Any] = {
-    # Example entries (uncomment when platforms are implemented):
-    # "Minecraft": Minecraft,  # Will be set below after import
-    # "CSGO": CSGOPlatform,
-    # "Roblox": RobloxPlatform,
-    # Add your platform classes here
-}
+# Platform registry: automatically discovered from src/platforms/
+PLATFORM_REGISTRY: Dict[str, Any] = {}
 
-# Algorithm registry: maps algorithm names to their classes
-# Add new algorithms here as they are implemented
-ALGORITHM_REGISTRY: Dict[str, Any] = {
-    # Stub algorithm (default fallback)
-    "stub": None,  # Will be set to StubAlgorithm class below
-    # Example entries (uncomment when algorithms are implemented):
-    # "simple_mm": SimpleMarketMaker,
-    # "volatility_adjusted": VolatilityAdjusted,
-    # Add your algorithm classes here
-}
+# Algorithm registry: automatically discovered from src/algorithms/
+ALGORITHM_REGISTRY: Dict[str, Any] = {}
+
+
+def _discover_algorithms() -> None:
+    """
+    Automatically discover all algorithms from src/algorithms/ directory.
+    Each Python file in the algorithms directory should contain an Algorithm class.
+    The algorithm_name property is used as the registry key.
+    """
+    algorithms_dir = Path(__file__).parent / "algorithms"
+    
+    if not algorithms_dir.exists():
+        return
+    
+    # Get all Python files in algorithms directory (excluding __init__.py)
+    algorithm_files = [
+        f for f in algorithms_dir.glob("*.py")
+        if f.name != "__init__.py" and f.is_file()
+    ]
+    
+    for algo_file in algorithm_files:
+        try:
+            # Import module: .algorithms.filename (relative import)
+            module_name = f".algorithms.{algo_file.stem}"
+            module = importlib.import_module(module_name, package="src")
+            
+            # Find all Algorithm subclasses in the module
+            for name, obj in inspect.getmembers(module, inspect.isclass):
+                if (issubclass(obj, Algorithm) and 
+                    obj is not Algorithm):
+                    # Check if the class is from this module
+                    obj_module = obj.__module__
+                    expected_module = f"src.algorithms.{algo_file.stem}"
+                    if obj_module == expected_module or obj_module.endswith(f".algorithms.{algo_file.stem}"):
+                        # Create instance to get algorithm_name
+                        try:
+                            instance = obj()
+                            algo_name = instance.algorithm_name
+                            if algo_name:
+                                ALGORITHM_REGISTRY[algo_name] = obj
+                        except Exception as e:
+                            print(f"Warning: Could not instantiate algorithm {name} from {algo_file.name}: {e}")
+        except Exception as e:
+            print(f"Warning: Could not load algorithm from {algo_file.name}: {e}")
+
+
+def _discover_platforms() -> None:
+    """
+    Automatically discover all platforms from src/platforms/ directory.
+    Each subdirectory in platforms/ is a platform.
+    Import pattern: platforms."platformname" (lowercase) -> import PlatformName (PascalCase)
+    Example: platforms/minecraft/ -> from .platforms.minecraft import Minecraft
+    """
+    platforms_dir = Path(__file__).parent / "platforms"
+    
+    if not platforms_dir.exists():
+        return
+    
+    # Get all subdirectories in platforms directory
+    platform_dirs = [
+        d for d in platforms_dir.iterdir()
+        if d.is_dir() and not d.name.startswith("__") and d.name != "utils"
+    ]
+    
+    for platform_dir in platform_dirs:
+        platform_name_lower = platform_dir.name.lower()
+        # Convert folder name to PascalCase class name
+        # e.g., "minecraft" -> "Minecraft", "cs_go" -> "CsGo"
+        platform_name_pascal = ''.join(word.capitalize() for word in platform_name_lower.split('_'))
+        
+        try:
+            # Import from .platforms.platformname (relative import)
+            module_name = f".platforms.{platform_name_lower}"
+            module = importlib.import_module(module_name, package="src")
+            
+            # Try to get the platform class (should match PascalCase name)
+            platform_class = getattr(module, platform_name_pascal, None)
+            
+            if platform_class is None:
+                # Try alternative: look for Platform subclass in the module
+                from .platforms.platform import Platform
+                expected_module_base = f"src.platforms.{platform_name_lower}"
+                for name, obj in inspect.getmembers(module, inspect.isclass):
+                    if (issubclass(obj, Platform) and 
+                        obj is not Platform):
+                        obj_module = obj.__module__
+                        # Check if it's from this platform's module (could be in __init__ or platform.py)
+                        if (obj_module.startswith(expected_module_base) or 
+                            obj_module.endswith(f".platforms.{platform_name_lower}") or
+                            obj_module.endswith(f".platforms.{platform_name_lower}.platform")):
+                            platform_class = obj
+                            platform_name_pascal = name  # Use actual class name
+                            break
+                
+                # If still not found, try importing from platform.py directly
+                if platform_class is None:
+                    try:
+                        platform_module_name = f".platforms.{platform_name_lower}.platform"
+                        platform_module = importlib.import_module(platform_module_name, package="src")
+                        platform_class = getattr(platform_module, platform_name_pascal, None)
+                    except ImportError:
+                        pass
+            
+            if platform_class:
+                # Use the folder name (lowercase) as the registry key
+                # But store it with first letter capitalized for display
+                registry_key = platform_name_pascal
+                PLATFORM_REGISTRY[registry_key] = platform_class
+            else:
+                print(f"Warning: Could not find platform class '{platform_name_pascal}' in {platform_name_lower}")
+        except Exception as e:
+            print(f"Warning: Could not load platform from {platform_name_lower}: {e}")
+
+
+# Auto-discover algorithms and platforms on module import
+_discover_algorithms()
+_discover_platforms()
 
 
 def get_db():
@@ -117,37 +221,6 @@ def _create_algorithm(algorithm_name: str, config: dict) -> Any:
             f"Failed to create algorithm '{algorithm_name}': {str(e)}"
         ) from e
 
-
-# Define StubAlgorithm class for the registry
-class StubAlgorithm(Algorithm):
-    """Stub algorithm that maintains current prices."""
-    
-    @property
-    def algorithm_name(self) -> str:
-        return "stub"
-    
-    def run(self, buy_price: float, sell_price: float, stock: int, past_transactions: Any) -> Result:
-        """Return current prices unchanged."""
-        return Result(new_buy=buy_price, new_sell=sell_price)
-
-
-# Register the stub algorithm
-ALGORITHM_REGISTRY["stub"] = StubAlgorithm
-
-# Register platforms (import here to avoid circular dependencies)
-from .platforms.minecraft import Minecraft
-PLATFORM_REGISTRY["Minecraft"] = Minecraft
-
-
-def _create_stub_algorithm() -> Any:
-    """
-    Create a stub algorithm that maintains current prices.
-    This is used when algorithm implementations are not available.
-    
-    Returns:
-        Stub Algorithm instance
-    """
-    return StubAlgorithm()
 
 
 def load_all(db: Any) -> Dict:
