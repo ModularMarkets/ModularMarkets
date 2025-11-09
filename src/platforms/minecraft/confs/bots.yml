@@ -1,0 +1,32 @@
+# Minecraft Bot Configuration
+# List of Minecraft bots that act as warehouses for item storage and delivery
+#
+# WARNING: This file contains passwords and should NOT be committed to version control!
+# This file is automatically ignored by git (.gitignore).
+#
+# Fields:
+#   username: Bot's Minecraft username (required)
+#   password: Bot password (required)
+#   auth: Authentication type - 'online' (Mojang/Microsoft) or 'offline' (required)
+#   bot_id: Optional unique identifier (defaults to username if not provided)
+#
+# Note: UUID is automatically assigned by Minecraft during authentication and does not
+#       need to be specified in the configuration.
+
+bots:
+  # Example: Online authentication bot
+  - username: warehouse1
+    password: "change_me"
+    auth: online
+  
+  # Example: Offline authentication bot
+  - username: warehouse2
+    password: "change_me"
+    auth: offline
+  
+  # Example: Bot with custom bot_id
+  - username: warehouse3
+    password: "change_me"
+    auth: online
+    bot_id: "warehouse-003"
+
