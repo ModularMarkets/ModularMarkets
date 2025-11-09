@@ -12,7 +12,7 @@ src/
 ├── merchant.py         # Merchant class for item trading
 ├── models.py           # SQLAlchemy database models
 ├── shop.py             # Shop interface for managing merchants
-├── plugins/
+├── platforms/
 │   ├── __init__.py
 │   ├── minecraft.py    # Minecraft platform implementation
 │   └── platform.py     # Platform abstract base class
@@ -67,6 +67,6 @@ nix develop
 ## Notes
 
 - Database integration uses SQLAlchemy ORM
-- Platform-specific plugins should inherit from the `Platform` abstract class
+- Platform-specific implementations should inherit from the `Platform` abstract class
 - Algorithms should inherit from the `Algorithm` abstract class
 - User roles: 0 = GUEST, 10 = USER, 100 = ADMIN

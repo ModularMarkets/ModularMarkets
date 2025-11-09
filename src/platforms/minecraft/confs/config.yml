@@ -1,0 +1,15 @@
+# Minecraft Platform Configuration
+# Values can be overridden by environment variables
+
+# Trading mode: 'drop', 'chat', or 'plugin'
+trading_mode: drop
+
+# Server connection settings (for drop & chat modes)
+server_address: localhost
+server_port: 25565
+offline: false
+
+# Network settings
+# Path to SQL file for bot network (optional)
+network_sql_path: null
+

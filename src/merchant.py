@@ -5,7 +5,7 @@ from typing import Optional, Any
 
 from .users.user import User
 from .algorithm import Algorithm
-from .plugins.platform import Platform
+from .platforms.platform import Platform
 
 
 class Merchant:

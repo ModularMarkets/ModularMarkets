@@ -1,6 +1,7 @@
 # Core dependencies
 sqlalchemy>=2.0.0
 python-dotenv>=1.0.0
+pyyaml>=6.0.0
 
 # API Framework
 fastapi>=0.104.0
@@ -17,7 +18,7 @@ pytest>=7.4.0
 # Authentication (when implementing Auth0)
 # auth0-python>=3.24.0  # Auth0 SDK for authentication
 
-# HTTP/API clients (for platform plugins)
+# HTTP/API clients (for platform implementations)
 # requests>=2.31.0  # For making HTTP requests to external APIs
 # aiohttp>=3.9.0  # Async HTTP client (optional, for async operations)
 

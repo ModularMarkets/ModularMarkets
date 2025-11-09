@@ -5,7 +5,7 @@ from abc import ABC
 from typing import Dict, Optional, Any
 
 from .merchant import Merchant
-from .plugins.platform import Platform
+from .platforms.platform import Platform
 from .algorithm import Algorithm
 
 
