@@ -16,6 +16,18 @@ class Result:
 class Algorithm(ABC):
     """Abstract base class for market making algorithms."""
     
+    @property
+    @abstractmethod
+    def algorithm_name(self) -> str:
+        """
+        Get the unique name/identifier for this algorithm.
+        This should be a stable identifier used for loading from the database.
+        
+        Returns:
+            Unique algorithm name (e.g., "simple_mm", "volatility_adjusted", etc.)
+        """
+        pass
+    
     @abstractmethod
     def run(
         self,
@@ -35,6 +47,26 @@ class Algorithm(ABC):
             
         Returns:
             Result object with new_buy and new_sell prices
+        """
+        pass
+    
+    def get_config(self) -> dict:
+        """
+        Get the configuration dictionary for this algorithm.
+        Override this method if your algorithm has configurable parameters.
+        
+        Returns:
+            Dictionary of algorithm configuration parameters
+        """
+        return {}
+    
+    def set_config(self, config: dict) -> None:
+        """
+        Set the configuration for this algorithm from a dictionary.
+        Override this method if your algorithm has configurable parameters.
+        
+        Args:
+            config: Dictionary of algorithm configuration parameters
         """
         pass
 

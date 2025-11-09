@@ -70,8 +70,7 @@ class Merchant:
             raise ValueError(f"Platform delivery failed with error code: {result}")
         
         new_balance = user.get_balance() - total_cost
-        user.set_balance(new_balance)
-        user.save()
+        user.set_balance(new_balance)  # set_balance() now saves automatically
         
         from .models import TransactionModel
         import uuid as uuid_module
@@ -116,8 +115,7 @@ class Merchant:
             raise ValueError(f"Platform retrieval failed with error code: {result}")
         
         new_balance = user.get_balance() + total_revenue
-        user.set_balance(new_balance)
-        user.save()
+        user.set_balance(new_balance)  # set_balance() now saves automatically
         
         from .models import TransactionModel
         import uuid as uuid_module
@@ -166,6 +164,9 @@ class Merchant:
         # Update prices
         self.buy_price = result.new_buy
         self.sell_price = result.new_sell
+        
+        # Save updated prices to database
+        self.save_merchant_to_sql()
     
     def _get_past_transactions(self) -> Any:
         """
@@ -190,6 +191,7 @@ class Merchant:
     def set_buy_cap(self, buy_cap: int) -> None:
         """Set the buy cap for this merchant."""
         self.buy_cap = buy_cap
+        self.save_merchant_to_sql()
     
     def get_sell_cap(self) -> int:
         """Get the sell cap for this merchant."""
@@ -198,6 +200,7 @@ class Merchant:
     def set_sell_cap(self, sell_cap: int) -> None:
         """Set the sell cap for this merchant."""
         self.sell_cap = sell_cap
+        self.save_merchant_to_sql()
     
     def get_algo(self) -> Algorithm:
         """Get the algorithm for this merchant."""
@@ -206,6 +209,8 @@ class Merchant:
     def set_algo(self, algo: Algorithm) -> None:
         """Set the algorithm for this merchant."""
         self.algo = algo
+        # Save algorithm change to database
+        self.save_merchant_to_sql()
     
     def save_merchant_to_sql(self) -> None:
         """Save the merchant state to the database."""
@@ -217,5 +222,10 @@ class Merchant:
         if merchant_model:
             merchant_model.buy_price = self.buy_price
             merchant_model.sell_price = self.sell_price
+            merchant_model.buy_cap = self.buy_cap
+            merchant_model.sell_cap = self.sell_cap
+            # Save algorithm name and config
+            merchant_model.algorithm_type = self.algo.algorithm_name
+            merchant_model.algorithm_config = self.algo.get_config()
         self.my_db.commit()
 

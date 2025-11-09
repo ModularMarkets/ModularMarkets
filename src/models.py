@@ -35,6 +35,8 @@ class MerchantModel(Base):
     sell_price = Column(Float)
     algorithm_type = Column(String)
     algorithm_config = Column(JSON)
+    buy_cap = Column(Integer)
+    sell_cap = Column(Integer)
 
 
 class TransactionModel(Base):

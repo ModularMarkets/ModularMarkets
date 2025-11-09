@@ -70,11 +70,16 @@ class Shop(ABC):
             shop_id=getattr(self, 'shop_id', ''),
             buy_price=initial_buy_price,
             sell_price=initial_sell_price,
-            algorithm_type=algo.__class__.__name__,
-            algorithm_config={}
+            algorithm_type=algo.algorithm_name,
+            algorithm_config=algo.get_config(),
+            buy_cap=buy_cap,
+            sell_cap=sell_cap
         )
         self.my_db.add(merchant_model)
         self.my_db.commit()
+        
+        # Save shop state
+        self.save_shop_to_sql()
     
     def remove_merchant(self, name: str) -> None:
         """
@@ -97,6 +102,9 @@ class Shop(ABC):
         
         del self.merchants[name]
         self.my_db.commit()
+        
+        # Save shop state
+        self.save_shop_to_sql()
     
     def get_merchant(self, name: str) -> Optional[Merchant]:
         """
@@ -114,11 +122,22 @@ class Shop(ABC):
         """Save the shop state to the database."""
         from .models import ShopModel
         
+        shop_id = getattr(self, 'shop_id', None)
+        if not shop_id:
+            raise ValueError("Cannot save shop without shop_id")
+        
         shop_model = self.my_db.query(ShopModel).filter(
-            ShopModel.shop_id == getattr(self, 'shop_id', None)
+            ShopModel.shop_id == shop_id
         ).first()
         if shop_model:
             shop_model.platform_type = getattr(self, 'platform_type', None)
             shop_model.platform_config = getattr(self, 'platform_config', {})
+        else:
+            shop_model = ShopModel(
+                shop_id=shop_id,
+                platform_type=getattr(self, 'platform_type', None),
+                platform_config=getattr(self, 'platform_config', {})
+            )
+            self.my_db.add(shop_model)
         self.my_db.commit()
 

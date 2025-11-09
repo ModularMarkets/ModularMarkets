@@ -35,6 +35,7 @@ class User:
     def set_balance(self, new_balance: float) -> None:
         """Set the balance of the user."""
         self.balance = new_balance
+        self.save()
     
     def change_password(self, old_password: str, new_password: str) -> None:
         """Change the user's password."""
@@ -46,7 +47,8 @@ class User:
     
     def change_display_name(self, new_display_name: str) -> None:
         """Change the user's display name."""
-        pass
+        self.display_name = new_display_name
+        self.save()
     
     def save(self) -> None:
         """Save user to database."""

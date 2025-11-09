@@ -23,6 +23,9 @@
             (pkgs.python312.withPackages (ps: [
               ps.sqlalchemy
               ps.python-dotenv
+              ps.pytest
+              ps.fastapi
+              ps.uvicorn
               ps.pip
             ]))
           ];
@@ -30,7 +33,9 @@
           shellHook = ''
             echo "Market Maker App development environment"
             echo "Python: $(python --version)"
-            echo "Available packages: sqlalchemy, python-dotenv"
+            echo "Available packages: sqlalchemy, python-dotenv, pytest, fastapi, uvicorn"
+            echo "Run tests with: pytest tests/"
+            echo "Run API server with: python main.py"
           '';
         };
       }
