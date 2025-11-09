@@ -290,26 +290,121 @@ class MinecraftBot(Warehouse):
         """
         Deliver an item to a user.
         
+        Uses pathfinding to navigate to the player (3 blocks away), then drops items towards them.
+        The uuid parameter accepts either a username or an actual UUID.
+        
         Args:
             item_name: Name of the item to deliver
             amount: Amount to deliver
-            uuid: User's UUID
+            uuid: User's UUID or username
             
         Returns:
             0 if success, non-zero error code if failure
         """
-        # TODO: Implement actual delivery logic
-        # After successful delivery, update inventory and save to SQL:
-        #   result = <perform delivery>
-        #   if result == 0:
-        #       # Update inventory (remove item)
-        #       if self.inventory and hasattr(self.inventory, 'remove_item'):
-        #           self.inventory.remove_item(item_name, amount)
-        #       # Save to SQL if db session is available
-        #       if self._db_session:
-        #           self.save_to_sql(self._db_session)
-        #   return result
-        pass
+        from .node_service import MineflayerClient
+        import requests
+        import time
+        
+        client = None
+        try:
+            client = MineflayerClient()
+            
+            # Check if bot is connected
+            try:
+                status = client.get_status(self.bot_id)
+                is_connected = status.get('success') and status.get('status') == 'connected'
+            except requests.exceptions.HTTPError as e:
+                # 404 means bot doesn't exist, not connected
+                is_connected = False
+            except Exception as e:
+                print(f"Error checking bot status for {self.bot_id}: {e}")
+                return 1
+            
+            if not is_connected:
+                # Bot not connected, need server info - this should be set by platform
+                if not self._server_address:
+                    print(f"Error: Cannot login bot {self.bot_id} without server info")
+                    return 1
+                
+                # Try to login
+                try:
+                    login_result = client.login(
+                        bot_id=self.bot_id,
+                        username=self.username,
+                        password=self.password,
+                        auth=self.auth,
+                        server_host=self._server_address,
+                        server_port=self._server_port or 25565,
+                        version=self._minecraft_version
+                    )
+                    
+                    if not login_result.get('success'):
+                        print(f"Error: Login failed for bot {self.bot_id}: {login_result}")
+                        return 1
+                    
+                    # Wait a bit for connection to establish
+                    time.sleep(2)
+                    
+                    # Verify connection
+                    status = client.get_status(self.bot_id)
+                    if not status.get('success') or status.get('status') != 'connected':
+                        print(f"Error: Bot {self.bot_id} not connected after login attempt")
+                        return 1
+                        
+                except requests.exceptions.RequestException as e:
+                    print(f"Error: Login request failed for bot {self.bot_id}: {e}")
+                    return 1
+                except Exception as e:
+                    print(f"Error: Unexpected error during login for bot {self.bot_id}: {e}")
+                    return 1
+            
+            # Normalize item name (remove minecraft: prefix if present)
+            normalized_item_name = item_name.replace('minecraft:', '')
+            
+            # Call deliver_item API endpoint
+            try:
+                result = client.deliver_item(
+                    bot_id=self.bot_id,
+                    item_name=normalized_item_name,
+                    amount=amount,
+                    target_uuid=uuid,
+                    timeout_seconds=60
+                )
+                
+                if not result.get('success', False):
+                    error_msg = result.get('error', 'Unknown error')
+                    print(f"Error delivering item: {error_msg}")
+                    return 1
+                
+                # Get actual amount dropped
+                amount_dropped = result.get('amount_dropped', 0)
+                
+                if amount_dropped < amount:
+                    print(f"Warning: Only dropped {amount_dropped} out of {amount} {item_name}")
+                
+                # Update inventory (remove item)
+                if self.inventory and hasattr(self.inventory, 'remove_item'):
+                    self.inventory.remove_item(normalized_item_name, amount_dropped)
+                
+                # Save to SQL if db session is available
+                if self._db_session:
+                    self.save_to_sql(self._db_session)
+                
+                return 0
+                
+            except requests.exceptions.RequestException as e:
+                print(f"Error: Deliver item request failed for bot {self.bot_id}: {e}")
+                return 1
+            except ValueError as e:
+                print(f"Error delivering item: {e}")
+                return 1
+            except Exception as e:
+                print(f"Error: Unexpected error during delivery for bot {self.bot_id}: {e}")
+                return 1
+                
+        except Exception as e:
+            print(f"Error: Failed to deliver item {item_name} to {uuid}: {e}")
+            return 1
     
     def transfer_item(self, item_name: str, amount: int, warehouse: Warehouse) -> int:
         """
@@ -1251,7 +1346,7 @@ class MinecraftBotNet(StorageNetwork):
 class Minecraft(Platform):
     """Minecraft platform implementation for The Pit and other servers."""
     
-    platform_name: str = "minecrap"
+    platform_name: str = "minecraft"
     
     def __init__(self, *args, **kwargs):
         """
@@ -1599,13 +1694,82 @@ class Minecraft(Platform):
         Args:
             item_name: Name of the item to deliver
             amount: Amount to deliver
-            uuid: User's UUID
+            uuid: User's UUID or username
             
         Returns:
             0 if success, non-zero error code if failure
         """
-        # DUMMY: Returning test value
-        return 0
+        # Validate that the item is in the list of possible items
+        normalized_item_name = item_name.replace('minecraft:', '')
+        valid_item_names = self.get_item_list()
+        if normalized_item_name not in valid_item_names:
+            print(f"Error: Item '{item_name}' is not a valid item. Valid items: {', '.join(valid_item_names)}")
+            return 1  # Invalid item
+        
+        if not self._network:
+            return 1  # No network available
+        
+        try:
+            # Find a bot that has enough of the item
+            bot = None
+            for warehouse in self._network.warehouses:
+                if isinstance(warehouse, MinecraftBot):
+                    # Check if bot has enough stock
+                    try:
+                        stock = warehouse.get_stock(normalized_item_name, cached=True)
+                        if stock >= amount:
+                            bot = warehouse
+                            break
+                    except Exception as e:
+                        # Skip bots that can't provide stock info
+                        print(f"Warning: Could not check stock for bot {warehouse.bot_id}: {e}")
+                        continue
+            
+            if not bot:
+                # No bot has enough stock - check total network stock
+                total_stock = self._network.get_stock(normalized_item_name, cached=True)
+                if total_stock < amount:
+                    print(f"Error: Not enough stock. Network has {total_stock}, need {amount}")
+                    return 1
+                else:
+                    # Stock exists but might be spread across multiple bots
+                    # For now, try to find the bot with the most stock
+                    best_bot = None
+                    max_stock = 0
+                    for warehouse in self._network.warehouses:
+                        if isinstance(warehouse, MinecraftBot):
+                            try:
+                                stock = warehouse.get_stock(normalized_item_name, cached=True)
+                                if stock > max_stock:
+                                    max_stock = stock
+                                    best_bot = warehouse
+                            except Exception:
+                                continue
+                    
+                    if best_bot:
+                        bot = best_bot
+                        print(f"Warning: Item spread across multiple bots. Using bot {bot.bot_id} with {max_stock} items")
+                    else:
+                        print(f"Error: Could not find a bot with the item")
+                        return 1
+            
+            # Set server connection info for bot if not already set
+            if not bot._server_address:
+                bot._server_address = self._server_address
+                bot._server_port = self._server_port
+                bot._minecraft_version = self._minecraft_version
+            
+            # Have the bot deliver the item
+            return bot.deliver_item(normalized_item_name, amount, uuid)
+            
+        except ValueError as e:
+            print(f"Error finding warehouse for delivery: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error delivering item {item_name}: {e}")
+            import traceback
+            traceback.print_exc()
+            return 1
     
     def retrieve_item(self, item_name: str, amount: int, uuid: str) -> int:
         """
