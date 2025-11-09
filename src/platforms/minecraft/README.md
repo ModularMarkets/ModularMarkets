@@ -92,6 +92,7 @@ trading_mode: drop
 server_address: localhost
 server_port: 25565
 offline: false
+minecraft_version: 1.21.8
 ```
 
 **Environment Variable Overrides:**
@@ -99,6 +100,7 @@ offline: false
 - `MINECRAFT_SERVER_ADDRESS`: Overrides `server_address`
 - `MINECRAFT_SERVER_PORT`: Overrides `server_port`
 - `MINECRAFT_OFFLINE`: Overrides `offline` (set to 'true', '1', or 'yes')
+- `MINECRAFT_VERSION`: Overrides `minecraft_version` (e.g., '1.21.8', '1.21.4')
 - `MINECRAFT_DATABASE_URL`: Database connection URL (default: `sqlite:///minecraft_network.db`)
 
 ### items.yml
