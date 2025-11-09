@@ -17,6 +17,11 @@
   # The flake uses a virtual environment approach - packages are installed via pip
   # from requirements.txt files, so you never need to update the flake when adding
   # new packages to requirements.txt.
+  #
+  # Platform-specific notes:
+  #   - Minecraft platform: Requires Node.js for the mineflayer service
+  #     Node.js dependencies are automatically installed from package.json when
+  #     the minecraft platform is enabled.
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -49,7 +54,7 @@
               pkgs.openssl
               pkgs.zlib
               pkgs.sqlite
-              pkgs.nodejs_20
+              pkgs.nodejs_22
               pkgs.nodePackages.npm
             ];
             
@@ -92,17 +97,34 @@
               install_requirements "src/platforms/${platform}/requirements.txt" "${platform}"
               '') platforms)}
               
+              # Install Node.js dependencies for mineflayer service (if minecraft platform is enabled)
+              ${if builtins.elem "minecraft" platforms then ''
+              NODE_SERVICE_DIR="src/platforms/minecraft/node_service"
+              if [ -f "$NODE_SERVICE_DIR/package.json" ]; then
+                if [ ! -d "$NODE_SERVICE_DIR/node_modules" ]; then
+                  echo "Installing Node.js dependencies for mineflayer service..."
+                  cd "$NODE_SERVICE_DIR"
+                  npm install
+                  cd - > /dev/null
+                  echo "✓ Installed Node.js dependencies"
+                else
+                  echo "✓ Node.js dependencies already installed"
+                fi
+              fi
+              '' else ""}
+              
               echo ""
               echo "Market Maker App development environment"
               echo "Python: $(python --version)"
               echo "Node.js: $(node --version)"
-              echo "npm: $(npm --version)"
               echo "Enabled platforms: ${if platforms == [] then "none" else builtins.concatStringsSep ", " platforms}"
               echo "Venv active: $VENV_DIR"
               echo ""
               echo "Run tests with: pytest tests/"
-              echo "Run API server with: python backend/main.py"
-              echo "Run frontend with: cd frontend && npm run dev"
+              echo "Run API server with: python main.py"
+              ${if builtins.elem "minecraft" platforms then ''
+              echo "Start mineflayer service with: cd src/platforms/minecraft/node_service && npm start"
+              '' else ""}
             '';
           };
         

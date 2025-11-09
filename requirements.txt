@@ -18,7 +18,7 @@ pytest>=7.4.0
 # auth0-python>=3.24.0  # Auth0 SDK for authentication
 
 # HTTP/API clients (for platform implementations)
-# requests>=2.31.0  # For making HTTP requests to external APIs
+requests>=2.31.0  # For making HTTP requests to external APIs (required for mineflayer client)
 # aiohttp>=3.9.0  # Async HTTP client (optional, for async operations)
 
 # Development tools

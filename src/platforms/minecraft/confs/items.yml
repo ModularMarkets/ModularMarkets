@@ -6,11 +6,15 @@
 # for identifying items in trading (e.g., custom names, lore, enchantments).
 # It must follow the Minecraft NBT specification.
 #
-# For standard items without custom NBT, use an empty info: {} or omit it.
-# Only include NBT data when items have custom names, descriptions, or other
+# The 'id' field in info is the Minecraft item identifier (e.g., "minecraft:diamond").
+# This is required for proper item identification in the game.
+#
+# For standard items without custom NBT, info should contain only the 'id' field.
+# Only include additional NBT data when items have custom names, descriptions, or other
 # identifying characteristics that matter for trading.
 #
 # Common NBT fields:
+#   id: "minecraft:item_name"  # Minecraft item identifier (required)
 #   display:
 #     Name: '{"text":"Custom Item Name"}'  # JSON text component
 #     Lore: ['{"text":"Line 1"}', '{"text":"Line 2"}']  # Array of JSON text
@@ -20,65 +24,79 @@
 
 items:
   # Ores and Minerals
-  # Standard items without custom NBT - info is empty
+  # Standard items without custom NBT - info contains only the id field
   - name: diamond
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:diamond"
   
   - name: emerald
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:emerald"
   
   - name: gold_ingot
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:gold_ingot"
   
   - name: iron_ingot
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:iron_ingot"
   
   - name: netherite_ingot
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:netherite_ingot"
   
   - name: ancient_debris
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:ancient_debris"
   
   # Food and Consumables
   - name: golden_apple
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:golden_apple"
   
   - name: enchanted_golden_apple
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:enchanted_golden_apple"
   
   - name: experience_bottle
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:experience_bottle"
   
   # Redstone Components
   - name: redstone
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:redstone"
   
   - name: redstone_block
     weight: 9
-    info: {}
+    info:
+      id: "minecraft:redstone_block"
   
   - name: observer
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:observer"
   
   # Building Materials
   - name: beacon
     weight: 1
-    info: {}
+    info:
+      id: "minecraft:beacon"
   
   - name: shulker_box
-    weight: 1
-    info: {}
+    weight: 64
+    info:
+      id: "minecraft:shulker_box"
   
   # Example: Item with custom NBT data (uncomment and modify as needed)
   # - name: custom_diamond

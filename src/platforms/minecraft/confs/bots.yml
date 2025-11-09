@@ -1,5 +1,5 @@
 # Minecraft Bot Configuration
-# List of Minecraft bots that act as warehouses for item storage and delivery
+# List of Minecraft bots that act as traders for item storage and delivery
 #
 # WARNING: This file contains passwords and should NOT be committed to version control!
 # This file is automatically ignored by git (.gitignore).
@@ -14,19 +14,14 @@
 #       need to be specified in the configuration.
 
 bots:
-  # Example: Online authentication bot
-  - username: warehouse1
+  - username: trader1
     password: "change_me"
     auth: online
   
-  # Example: Offline authentication bot
-  - username: warehouse2
-    password: "change_me"
-    auth: offline
-  
-  # Example: Bot with custom bot_id
-  - username: warehouse3
+  - username: trader2
     password: "change_me"
     auth: online
-    bot_id: "warehouse-003"
-
+  
+  - username: trader3
+    password: "change_me"
+    auth: online

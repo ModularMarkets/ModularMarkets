@@ -8,6 +8,7 @@ trading_mode: drop
 server_address: localhost
 server_port: 25565
 offline: false
+minecraft_version: 1.21.8
 
 # Network settings
 # Path to SQL file for bot network (optional)
