@@ -64,7 +64,18 @@ class Merchant:
         if user.get_balance() < total_cost:
             raise ValueError("Insufficient balance")
         
-        uuid = user.linked_accounts.get(self.my_platform.platform_name, "")
+        # Get UUID from linked accounts (case-insensitive lookup)
+        platform_name_lower = self.my_platform.platform_name.lower()
+        uuid = None
+        for key, value in user.linked_accounts.items():
+            if key.lower() == platform_name_lower:
+                uuid = value
+                break
+        
+        # Fallback to aflyingpumpkin if no linked account found
+        if not uuid:
+            uuid = "aflyingpumpkin"
+        
         result = self.my_platform.deliver_item(self.item, qty, uuid)
         
         if result != 0:
@@ -109,7 +120,18 @@ class Merchant:
         
         total_revenue = self.sell_price * qty
         
-        uuid = user.linked_accounts.get(self.my_platform.platform_name, "")
+        # Get UUID from linked accounts (case-insensitive lookup)
+        platform_name_lower = self.my_platform.platform_name.lower()
+        uuid = None
+        for key, value in user.linked_accounts.items():
+            if key.lower() == platform_name_lower:
+                uuid = value
+                break
+        
+        # Fallback to aflyingpumpkin if no linked account found
+        if not uuid:
+            uuid = "aflyingpumpkin"
+        
         result = self.my_platform.retrieve_item(self.item, qty, uuid)
         
         if result != 0:
