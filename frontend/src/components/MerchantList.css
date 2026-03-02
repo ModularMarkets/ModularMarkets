@@ -1,84 +1,132 @@
 .merchant-list {
   width: 100%;
+  animation: fadeIn var(--transition-base) ease-out;
 }
 
 .merchant-list-empty {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--spacing-2xl) var(--spacing-xl);
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
 }
 
 .merchant-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
+  margin-bottom: var(--spacing-xl);
+  gap: var(--spacing-md);
   flex-wrap: wrap;
 }
 
 .search-bar {
   flex: 1;
-  min-width: 250px;
+  min-width: 300px;
+  position: relative;
+}
+
+.search-bar::before {
+  content: '🔍';
+  position: absolute;
+  left: var(--spacing-md);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.125rem;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  background-color: var(--bg-tertiary);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 3rem;
   font-size: 1rem;
-  transition: border-color 0.2s ease;
+  font-weight: 500;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .search-input:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--accent-primary-light);
+  background: var(--bg-elevated);
+  transform: translateY(-1px);
 }
 
 .search-input::placeholder {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  font-weight: 400;
 }
 
 .btn-create-merchant {
-  background-color: var(--accent-primary);
-  color: white;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
+  background: var(--accent-gradient);
+  color: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-xl);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 700;
   white-space: nowrap;
-  transition: background-color 0.2s ease;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-create-merchant::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left var(--transition-slow);
 }
 
 .btn-create-merchant:hover {
-  background-color: #3a8eef;
+  background: var(--accent-gradient-hover);
+  box-shadow: var(--shadow-lg), var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+.btn-create-merchant:hover::before {
+  left: 100%;
 }
 
 .btn-create-merchant:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 .merchants-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-xl);
 }
 
 .no-merchants {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 4rem 2rem;
+  padding: var(--spacing-2xl) var(--spacing-xl);
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.125rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-xl);
+  border: 1px dashed var(--glass-border);
 }
 
 @media (max-width: 768px) {
   .merchants-grid {
     grid-template-columns: 1fr;
+    gap: var(--spacing-md);
   }
 
   .merchant-list-header {
@@ -90,4 +138,3 @@
     min-width: 100%;
   }
 }
-

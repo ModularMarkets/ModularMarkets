@@ -1,46 +1,88 @@
 .user-selector {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-md);
 }
 
 .user-select {
-  background-color: var(--bg-tertiary);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  padding: 0.5rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
   font-size: 0.9rem;
+  font-weight: 500;
   min-width: 200px;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4af37' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-md) center;
+  padding-right: 2.5rem;
+  position: relative;
+}
+
+/* Fix dropdown positioning */
+.user-select:focus {
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md), 0 0 0 3px var(--accent-primary-light);
+  outline: none;
+}
+
+.user-select option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: var(--spacing-sm);
 }
 
 .user-select:hover {
-  border-color: var(--accent-primary);
-}
-
-.user-select:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+  border-color: var(--border-hover);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-create-user {
-  background-color: var(--accent-primary);
-  color: white;
-  border-radius: 6px;
-  width: 36px;
-  height: 36px;
-  font-size: 1.2rem;
-  font-weight: bold;
+  background: var(--accent-gradient);
+  color: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn-create-user::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
 }
 
 .btn-create-user:hover {
-  background-color: #3a8eef;
+  background: var(--accent-gradient-hover);
+  box-shadow: var(--shadow-lg), var(--shadow-gold);
+  transform: translateY(-2px);
+}
+
+.btn-create-user:hover::before {
+  width: 300px;
+  height: 300px;
 }
 
 .btn-create-user:active {
@@ -48,26 +90,31 @@
 }
 
 .btn-link-account {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  width: 36px;
-  height: 36px;
-  font-size: 1.2rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  color: var(--text-secondary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 0.9rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 .btn-link-account:hover {
-  background-color: var(--bg-tertiary);
+  background: var(--bg-elevated);
   border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  color: var(--accent-primary);
 }
 
 .btn-link-account:active {
-  transform: scale(0.95);
+  transform: translateY(0);
 }
-

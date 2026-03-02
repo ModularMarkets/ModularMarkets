@@ -50,7 +50,7 @@ export const UserSelector: React.FC = () => {
         className="btn-create-user"
         title="Create New User"
       >
-        +
+        Login
       </button>
       {currentUser && (
         <button
@@ -58,7 +58,7 @@ export const UserSelector: React.FC = () => {
           className="btn-link-account"
           title="Link Platform Account"
         >
-          🔗
+          Link Account
         </button>
       )}
       {showCreateModal && (

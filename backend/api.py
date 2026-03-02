@@ -497,3 +497,43 @@ async def get_platform_items(platform_type: str):
     except (ValueError, RuntimeError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+@app.get("/api/shops/{shop_id}/merchants/{item}/transactions")
+async def get_merchant_transactions(shop_id: str, item: str, state: Dict = Depends(get_app_state)):
+    """Get transaction history for a merchant."""
+    from src.models import TransactionModel, UserModel
+    
+    shops = state['shops']
+    db = state['db']
+    
+    if shop_id not in shops:
+        raise HTTPException(status_code=404, detail="Shop not found")
+    
+    shop = shops[shop_id]
+    merchant = shop.get_merchant(item)
+    if not merchant:
+        raise HTTPException(status_code=404, detail="Merchant not found")
+    
+    # Query transactions for this item from users with role 10
+    transactions = db.query(TransactionModel).join(
+        UserModel, TransactionModel.user_id == UserModel.username
+    ).filter(
+        TransactionModel.item_name == item,
+        UserModel.role == 10
+    ).order_by(TransactionModel.timestamp.desc()).limit(500).all()
+    
+    # Convert to dict format
+    result = []
+    for txn in transactions:
+        result.append({
+            "transaction_id": txn.transaction_id,
+            "type": txn.type,
+            "user_id": txn.user_id,
+            "item_name": txn.item_name,
+            "quantity": txn.quantity,
+            "price": txn.price,
+            "timestamp": txn.timestamp.isoformat() if txn.timestamp else None
+        })
+    
+    return {"transactions": result}
+

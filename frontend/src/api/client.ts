@@ -54,6 +54,16 @@ export interface CreateMerchantRequest {
   sell_cap: number;
 }
 
+export interface Transaction {
+  transaction_id: string;
+  type: 'buy' | 'sell';
+  user_id: string;
+  item_name: string;
+  quantity: number;
+  price: number;
+  timestamp: string;
+}
+
 // API Functions
 export const apiClient = {
   // Users
@@ -132,6 +142,11 @@ export const apiClient = {
 
   getPlatformItems: async (platformType: string): Promise<{ platform_type: string; items: string[] }> => {
     const response = await api.get<{ platform_type: string; items: string[] }>(`/platforms/${platformType}/items`);
+    return response.data;
+  },
+
+  getTransactions: async (shopId: string, item: string): Promise<{ transactions: Transaction[] }> => {
+    const response = await api.get<{ transactions: Transaction[] }>(`/shops/${shopId}/merchants/${item}/transactions`);
     return response.data;
   },
 };

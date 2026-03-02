@@ -3,11 +3,12 @@ import { useApp } from '../context/AppContext';
 import { MerchantCard } from './MerchantCard';
 import { CreateMerchantModal } from './CreateMerchantModal';
 import { MerchantDetail } from './MerchantDetail';
+import { PriceHistoryGraph } from './PriceHistoryGraph';
 import { MerchantInfo } from '../api/client';
 import './MerchantList.css';
 
 export const MerchantList: React.FC = () => {
-  const { currentShop, refreshShops } = useApp();
+  const { currentShop, refreshShops, currentUser } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantInfo | null>(null);
@@ -30,6 +31,12 @@ export const MerchantList: React.FC = () => {
 
   return (
     <div className="merchant-list">
+      {currentShop && currentShop.merchants.length > 0 && (
+        <PriceHistoryGraph 
+          shopId={currentShop.shop_id} 
+          item={currentShop.merchants[0].item} 
+        />
+      )}
       <div className="merchant-list-header">
         <div className="search-bar">
           <input
@@ -40,12 +47,14 @@ export const MerchantList: React.FC = () => {
             className="search-input"
           />
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="btn-create-merchant"
-        >
-          + Create Merchant
-        </button>
+        {currentUser && currentUser.role === 100 && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="btn-create-merchant"
+          >
+            + Create Merchant
+          </button>
+        )}
       </div>
       <div className="merchants-grid">
         {filteredMerchants.length === 0 ? (

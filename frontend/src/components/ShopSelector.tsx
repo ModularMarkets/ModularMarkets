@@ -4,7 +4,7 @@ import { CreateShopModal } from './CreateShopModal';
 import './ShopSelector.css';
 
 export const ShopSelector: React.FC = () => {
-  const { currentShop, shops, setCurrentShop, refreshShops } = useApp();
+  const { currentShop, shops, setCurrentShop, refreshShops, currentUser } = useApp();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleShopChange = (shopId: string) => {
@@ -31,13 +31,15 @@ export const ShopSelector: React.FC = () => {
           </option>
         ))}
       </select>
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="btn-create-shop"
-        title="Create New Shop"
-      >
-        +
-      </button>
+      {currentUser && currentUser.role === 100 && (
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="btn-create-shop"
+          title="Create New Shop"
+        >
+          + Create Shop
+        </button>
+      )}
       {showCreateModal && (
         <CreateShopModal
           onClose={() => setShowCreateModal(false)}
