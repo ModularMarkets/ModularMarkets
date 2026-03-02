@@ -16,16 +16,11 @@
 </div>
 
 ---
-
-## Screenshot
-
 <!-- Replace the path below with your own screenshot (e.g. docs/screenshot.png or docs/demo.gif) -->
 <p align="center">
-  <img src="docs/screenshot.png" alt="ModularMarkets screenshot" width="800" />
+  <img src="https://github.com/user-attachments/assets/592cca2d-fa36-43b9-98e7-190e602502b2" width="513">
 </p>
-<p align="center"><em>Add a screenshot or demo GIF of the app here (e.g. dashboard, trading UI, or Minecraft integration).</em></p>
-
----
+</div>
 
 ## Features
 
